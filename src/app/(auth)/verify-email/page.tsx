@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
-  const { user, verifyOTP, resendOTP, isVerifyLoading, isResendOTPLoading } = useAuth();
+  const { user, verifyOTP, resendOTP, isVerifyOTPLoading, isResendOTPLoading } = useAuth();
   const [canResend, setCanResend] = useState(false);
   const [countdown, setCountdown] = useState(60);
 
@@ -94,10 +94,10 @@ export default function VerifyEmailPage() {
 
           <button
             type="submit"
-            disabled={isVerifyLoading}
+            disabled={isVerifyOTPLoading}
             className="h-14 w-full rounded-2xl bg-blue-600 text-base font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
-            {isVerifyLoading ? 'Verifying...' : 'Verify Email'}
+            {isVerifyOTPLoading ? 'Verifying...' : 'Verify Email'}
           </button>
 
           <div className="text-center">

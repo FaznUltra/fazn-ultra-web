@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { spectatingService } from '@/services/spectating.service';
-import { Button } from '@/components/ui/button';
 import { Loader2, Eye, Users, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -236,13 +235,13 @@ export default function SpectatePage() {
                 </div>
 
                 {/* Watch Button */}
-                <Button 
+                <button
                   onClick={() => router.push(`/challenges/${match._id}`)}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  className="w-full h-10 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
                 >
-                  <Eye className="w-4 h-4 mr-2" />
+                  <Eye className="w-4 h-4" />
                   Watch Match
-                </Button>
+                </button>
               </div>
             </div>
           ))}
@@ -252,23 +251,23 @@ export default function SpectatePage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-6">
-          <Button
-            variant="outline"
+          <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
+            className="px-4 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
-          </Button>
+          </button>
           <span className="text-sm text-gray-600">
             Page {page} of {totalPages}
           </span>
-          <Button
-            variant="outline"
+          <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
+            className="px-4 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
-          </Button>
+          </button>
         </div>
       )}
     </div>

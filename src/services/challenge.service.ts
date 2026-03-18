@@ -16,6 +16,23 @@ import {
   PaginatedChallenges
 } from '@/types/challenge';
 
+// Re-export types for convenience
+export type {
+  Challenge,
+  AvailableGame,
+  CreateChallengeRequest,
+  AcceptChallengeRequest,
+  RejectChallengeRequest,
+  CancelChallengeRequest,
+  UpdateStreamingLinkRequest,
+  SubmitResultRequest,
+  FlagMatchRequest,
+  CompleteMatchRequest,
+  DisputeMatchRequest,
+  ChallengeStats,
+  PaginatedChallenges
+};
+
 export const challengeService = {
   getAvailableGames: async (): Promise<ApiResponse<{ games: AvailableGame[] }>> => {
     const response = await apiClient.get('/challenges/games');

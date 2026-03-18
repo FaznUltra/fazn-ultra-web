@@ -12,12 +12,12 @@ import { MenuItem } from '@/components/profile/MenuItem';
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { profile, isProfileLoading, refetchProfile } = useUser(user?._id);
+  const { profile, isProfileLoading, refetch } = useUser(user?._id);
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refetchProfile();
+    await refetch();
     setRefreshing(false);
   };
 

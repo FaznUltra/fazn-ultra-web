@@ -1,7 +1,6 @@
 'use client';
 
 import { ExternalLink, Video } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface StreamEvidence {
   platform: 'YOUTUBE' | 'TWITCH' | null;
@@ -50,23 +49,14 @@ export function VODEvidence({
       {creatorStream?.vodAvailable && creatorStream.vodUrl && (
         <div className="border rounded-lg p-4 bg-gray-50">
           <p className="font-semibold mb-2 text-sm">{creatorUsername}'s Stream</p>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="w-full sm:w-auto"
+          <button
+            onClick={() => window.open(creatorStream.vodUrl!, '_blank')}
+            className="w-full h-9 px-3 border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
           >
-            <a 
-              href={creatorStream.vodUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              <Video className="w-4 h-4" />
-              Watch VOD
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </Button>
+            <Video className="w-4 h-4" />
+            Watch {creatorUsername}'s VOD
+            <ExternalLink className="w-4 h-4" />
+          </button>
           <p className="text-xs text-gray-500 mt-2">
             Recorded: {creatorStream.streamStartTime && new Date(creatorStream.streamStartTime).toLocaleString()}
           </p>
@@ -77,23 +67,14 @@ export function VODEvidence({
       {acceptorStream?.vodAvailable && acceptorStream.vodUrl && (
         <div className="border rounded-lg p-4 bg-gray-50">
           <p className="font-semibold mb-2 text-sm">{acceptorUsername}'s Stream</p>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="w-full sm:w-auto"
+          <button
+            onClick={() => window.open(acceptorStream.vodUrl!, '_blank')}
+            className="w-full h-9 px-3 border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
           >
-            <a 
-              href={acceptorStream.vodUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              <Video className="w-4 h-4" />
-              Watch VOD
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </Button>
+            <Video className="w-4 h-4" />
+            Watch {acceptorUsername}'s VOD
+            <ExternalLink className="w-4 h-4" />
+          </button>
           <p className="text-xs text-gray-500 mt-2">
             Recorded: {acceptorStream.streamStartTime && new Date(acceptorStream.streamStartTime).toLocaleString()}
           </p>
@@ -116,22 +97,13 @@ export function VODEvidence({
           <div className="space-y-2">
             {disputeEvidence.map((evidence, idx) => (
               <div key={idx} className="bg-white p-3 rounded border">
-                <Button
-                  variant="link"
-                  size="sm"
-                  asChild
-                  className="p-0 h-auto text-blue-600"
+                <button
+                  onClick={() => window.open(evidence.vodUrl, '_blank')}
+                  className="px-3 h-8 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1"
                 >
-                  <a 
-                    href={evidence.vodUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1"
-                  >
-                    Evidence {idx + 1}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </Button>
+                  <ExternalLink className="w-3 h-3" />
+                  View
+                </button>
                 <p className="text-sm text-gray-600 mt-1">{evidence.description}</p>
                 <p className="text-xs text-gray-400 mt-1">
                   Submitted: {new Date(evidence.submittedAt).toLocaleString()}

@@ -180,6 +180,8 @@ export interface ChallengeStats {
   winRate: number;
   totalEarnings: number;
   totalStaked: number;
+  activeChallenges: number;
+  totalWinnings: number;
 }
 
 export interface PaginatedChallenges {
