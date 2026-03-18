@@ -90,6 +90,25 @@ export const challengeService = {
     return response.data;
   },
 
+  getStreamingStatus: async (id: string): Promise<ApiResponse<{
+    creator: {
+      displayName: string;
+      isLive: boolean;
+      platform?: string;
+      streamUrl?: string;
+    };
+    acceptor: {
+      displayName: string;
+      isLive: boolean;
+      platform?: string;
+      streamUrl?: string;
+    };
+    bothLive: boolean;
+  }>> => {
+    const response = await apiClient.get(`/challenges/${id}/streaming-status`);
+    return response.data;
+  },
+
   createChallenge: async (data: CreateChallengeRequest): Promise<ApiResponse<{ challenge: Challenge }>> => {
     const response = await apiClient.post('/challenges', data);
     return response.data;

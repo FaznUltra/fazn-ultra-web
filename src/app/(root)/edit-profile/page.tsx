@@ -21,6 +21,15 @@ export default function EditProfilePage() {
   const [lastName, setLastName] = useState(displayProfile?.lastName || '');
   const [phoneNumber, setPhoneNumber] = useState(displayProfile?.phoneNumber || '');
 
+  // Update state when profile data loads
+  useEffect(() => {
+    if (displayProfile) {
+      setFirstName(displayProfile.firstName || '');
+      setLastName(displayProfile.lastName || '');
+      setPhoneNumber(displayProfile.phoneNumber || '');
+    }
+  }, [displayProfile?.firstName, displayProfile?.lastName, displayProfile?.phoneNumber]);
+
   // Handle OAuth callback
   useEffect(() => {
     const youtube = searchParams.get('youtube');

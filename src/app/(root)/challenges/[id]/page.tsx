@@ -20,7 +20,8 @@ import {
   Key,
   PlayCircle,
   Clipboard,
-  Calendar
+  Calendar,
+  User
 } from 'lucide-react';
 import { challengeService } from '@/services/challenge.service';
 import { StreamPlayer } from '@/components/challenges/StreamPlayer';
@@ -82,8 +83,16 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
     enabled: !!user?._id,
   });
 
+  const { data: streamingStatusData } = useQuery({
+    queryKey: ['streaming-status', resolvedParams.id],
+    queryFn: () => challengeService.getStreamingStatus(resolvedParams.id),
+    enabled: !!resolvedParams.id && !!data?.data?.challenge,
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time status
+  });
+
   const challenge = data?.data?.challenge;
   const currentUserProfile = userProfileData?.data?.user;
+  const streamingStatus = streamingStatusData?.data;
 
   // Mutations
   const acceptMutation = useMutation({
@@ -438,6 +447,97 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
           )}
         </div>
 
+        {/* Creator Role Indicator */}
+        {isCreator && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-1">You Created This Challenge</h3>
+                <p className="text-sm text-blue-700 mb-3">
+                  {challenge.status === 'OPEN' && 'Waiting for someone to accept your challenge.'}
+                  {challenge.status === 'PENDING_ACCEPTANCE' && 'Waiting for the invited player to accept.'}
+                  {challenge.status === 'ACCEPTED' && !challenge.witness && 'Waiting for a witness to volunteer.'}
+                  {challenge.status === 'ACCEPTED' && challenge.witness && !challenge.roomCode && 'Share the game room code to start.'}
+                  {challenge.status === 'ACCEPTED' && challenge.roomCode && !challenge.creatorJoinedRoom && 'Join the game room and confirm.'}
+                  {challenge.status === 'ACCEPTED' && challenge.creatorJoinedRoom && !challenge.matchStartedAt && 'Waiting for witness to start the match.'}
+                  {challenge.status === 'LIVE' && 'Match is live! Stream your gameplay.'}
+                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date() && 'Match completed. You can dispute if result is incorrect.'}
+                  {challenge.status === 'COMPLETED' && challenge.isDisputed && 'Your dispute is under review.'}
+                  {challenge.status === 'SETTLED' && 'Challenge settled.'}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-blue-600">
+                  <div className="flex items-center gap-1">
+                    <div className={`w-2 h-2 rounded-full ${challenge.status === 'LIVE' ? 'bg-green-500 animate-pulse' : 'bg-blue-400'}`}></div>
+                    <span className="font-semibold">Status: {challenge.status}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Acceptor Role Indicator */}
+        {isAcceptor && (
+          <div className="bg-green-50 border-2 border-green-200 rounded-xl sm:rounded-2xl p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-green-900 mb-1">You Accepted This Challenge</h3>
+                <p className="text-sm text-green-700 mb-3">
+                  {challenge.status === 'PENDING_ACCEPTANCE' && 'Review the challenge and accept or reject.'}
+                  {challenge.status === 'ACCEPTED' && !challenge.witness && 'Waiting for a witness to volunteer.'}
+                  {challenge.status === 'ACCEPTED' && challenge.witness && !challenge.roomCode && 'Waiting for creator to share room code.'}
+                  {challenge.status === 'ACCEPTED' && challenge.roomCode && !challenge.acceptorJoinedRoom && 'Join the game room and confirm.'}
+                  {challenge.status === 'ACCEPTED' && challenge.acceptorJoinedRoom && !challenge.matchStartedAt && 'Waiting for witness to start the match.'}
+                  {challenge.status === 'LIVE' && 'Match is live! Stream your gameplay.'}
+                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date() && 'Match completed. You can dispute if result is incorrect.'}
+                  {challenge.status === 'COMPLETED' && challenge.isDisputed && 'Your dispute is under review.'}
+                  {challenge.status === 'SETTLED' && 'Challenge settled.'}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-green-600">
+                  <div className="flex items-center gap-1">
+                    <div className={`w-2 h-2 rounded-full ${challenge.status === 'LIVE' ? 'bg-green-500 animate-pulse' : 'bg-green-400'}`}></div>
+                    <span className="font-semibold">Status: {challenge.status}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Witness Role Indicator */}
+        {isWitness && (
+          <div className="bg-purple-50 border-2 border-purple-200 rounded-xl sm:rounded-2xl p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+                <Eye className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-purple-900 mb-1">You are the Witness</h3>
+                <p className="text-sm text-purple-700 mb-3">
+                  {challenge.status === 'ACCEPTED' && !challenge.matchStartedAt && 'Wait for both players to join the room, then start the match.'}
+                  {challenge.status === 'ACCEPTED' && challenge.matchStartedAt && 'Match is in progress. Monitor the streams.'}
+                  {challenge.status === 'LIVE' && 'Match is live! Watch both streams and enter final scores when done.'}
+                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date() && 'Match completed. Waiting for dispute window to end.'}
+                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) <= new Date() && 'Ready to settle! Disburse funds to the winner.'}
+                  {challenge.status === 'COMPLETED' && challenge.isDisputed && 'Match is under dispute. Admin will review.'}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-purple-600">
+                  <div className="flex items-center gap-1">
+                    <div className={`w-2 h-2 rounded-full ${challenge.status === 'LIVE' ? 'bg-green-500 animate-pulse' : 'bg-purple-400'}`}></div>
+                    <span className="font-semibold">Status: {challenge.status}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Room Code Section */}
         {showRoomCode && (
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
@@ -463,6 +563,45 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                     <p className="text-xs text-gray-500 mb-1">ROOM CODE</p>
                     <p className="text-2xl font-bold text-gray-900 tracking-wider">{challenge.roomCode}</p>
                   </div>
+
+                  {/* Streaming Status for Creator */}
+                  {streamingStatus && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-blue-900">Your Stream Status</span>
+                        <div className="flex items-center gap-1">
+                          {streamingStatus.creator.isLive ? (
+                            <>
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm text-gray-700">{streamingStatus.acceptor.displayName}</span>
+                        <div className="flex items-center gap-1">
+                          {streamingStatus.acceptor.isLive ? (
+                            <>
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {challenge.creatorJoinedRoom ? (
                     <div className="flex items-center justify-center gap-2 text-green-600">
                       <CheckCircle className="h-5 w-5" />
@@ -493,6 +632,45 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                     <p className="text-xs text-gray-500 mb-1">ROOM CODE</p>
                     <p className="text-2xl font-bold text-gray-900 tracking-wider">{challenge.roomCode}</p>
                   </div>
+
+                  {/* Streaming Status for Acceptor */}
+                  {streamingStatus && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-green-900">Your Stream Status</span>
+                        <div className="flex items-center gap-1">
+                          {streamingStatus.acceptor.isLive ? (
+                            <>
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm text-gray-700">{streamingStatus.creator.displayName}</span>
+                        <div className="flex items-center gap-1">
+                          {streamingStatus.creator.isLive ? (
+                            <>
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {challenge.acceptorJoinedRoom ? (
                     <div className="flex items-center justify-center gap-2 text-green-600">
                       <CheckCircle className="h-5 w-5" />
@@ -517,6 +695,48 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                   <p className="text-xs text-gray-500 mb-1">ROOM CODE</p>
                   <p className="text-2xl font-bold text-gray-900 tracking-wider">{challenge.roomCode}</p>
                 </div>
+
+                {/* Streaming Status for Witness */}
+                {streamingStatus && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-purple-900 mb-2">Live Streaming Status</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700">{streamingStatus.creator.displayName}</span>
+                        <div className="flex items-center gap-1">
+                          {streamingStatus.creator.isLive ? (
+                            <>
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700">{streamingStatus.acceptor.displayName}</span>
+                        <div className="flex items-center gap-1">
+                          {streamingStatus.acceptor.isLive ? (
+                            <>
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {!challenge.creatorJoinedRoom || !challenge.acceptorJoinedRoom ? (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                     <p className="text-sm text-yellow-800 text-center">Waiting for players to join...</p>
@@ -634,29 +854,98 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
           </div>
         )}
 
-        {/* Streaming Section */}
-        {(challenge.creatorStreamingLink?.platform && challenge.creatorStreamingLink?.url) || 
-         (challenge.acceptorStreamingLink?.platform && challenge.acceptorStreamingLink?.url) ? (
+        {/* Live Streaming Section - Visible to All Participants */}
+        {streamingStatus && (streamingStatus.creator.isLive || streamingStatus.acceptor.isLive) && (
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 space-y-4 sm:space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Radio className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 animate-pulse" />
+                Watch Live Streams
+              </h3>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 rounded-full">
+                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                <span className="text-xs font-bold text-red-600">LIVE</span>
+              </div>
+            </div>
+
+            {/* Show both streams side-by-side when both are live, or single stream when only one is live */}
+            <div className={`grid gap-4 sm:gap-6 ${streamingStatus.creator.isLive && streamingStatus.acceptor.isLive ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+              {streamingStatus.creator.isLive && streamingStatus.creator.streamUrl && (
+                <div className={isCreator ? 'order-1' : 'order-2'}>
+                  <StreamPlayer
+                    platform={streamingStatus.creator.platform as 'YOUTUBE' | 'TWITCH'}
+                    url={streamingStatus.creator.streamUrl}
+                    label={`${streamingStatus.creator.displayName}'s Stream ${isCreator ? '(You)' : ''}`}
+                  />
+                </div>
+              )}
+
+              {streamingStatus.acceptor.isLive && streamingStatus.acceptor.streamUrl && (
+                <div className={isAcceptor ? 'order-1' : 'order-2'}>
+                  <StreamPlayer
+                    platform={streamingStatus.acceptor.platform as 'YOUTUBE' | 'TWITCH'}
+                    url={streamingStatus.acceptor.streamUrl}
+                    label={`${streamingStatus.acceptor.displayName}'s Stream ${isAcceptor ? '(You)' : ''}`}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Info message for participants */}
+            {(isCreator || isAcceptor) && streamingStatus.bothLive && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800 text-center">
+                  💡 You can watch both streams to ensure you're playing the same match
+                </p>
+              </div>
+            )}
+
+            {isWitness && streamingStatus.bothLive && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <p className="text-xs text-purple-800 text-center">
+                  👁️ Monitor both streams to verify fair gameplay
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Streaming Section (Saved Links - Fallback) */}
+        {!streamingStatus?.creator.isLive && !streamingStatus?.acceptor.isLive && 
+         ((challenge.creatorStreamingLink?.platform && challenge.creatorStreamingLink?.url) || 
+         (challenge.acceptorStreamingLink?.platform && challenge.acceptorStreamingLink?.url)) ? (
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 space-y-4 sm:space-y-6">
             <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Radio className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
-              Live Streams
+              <Radio className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
+              Stream Links (Offline)
             </h3>
 
             {challenge.creatorStreamingLink?.platform && challenge.creatorStreamingLink?.url && (
-              <StreamPlayer
-                platform={challenge.creatorStreamingLink.platform}
-                url={challenge.creatorStreamingLink.url}
-                label={`${challenge.creator.displayName}'s Stream`}
-              />
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-gray-700">{challenge.creator.displayName}'s Stream</p>
+                <a 
+                  href={challenge.creatorStreamingLink.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline break-all"
+                >
+                  {challenge.creatorStreamingLink.url}
+                </a>
+              </div>
             )}
 
             {challenge.acceptorStreamingLink?.platform && challenge.acceptorStreamingLink?.url && (
-              <StreamPlayer
-                platform={challenge.acceptorStreamingLink.platform}
-                url={challenge.acceptorStreamingLink.url}
-                label={`${challenge.acceptor?.displayName}'s Stream`}
-              />
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-gray-700">{challenge.acceptor?.displayName}'s Stream</p>
+                <a 
+                  href={challenge.acceptorStreamingLink.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline break-all"
+                >
+                  {challenge.acceptorStreamingLink.url}
+                </a>
+              </div>
             )}
 
             {canUpdateStreaming && (
