@@ -3,44 +3,143 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
-import { usePublicChallenges, useFriendsChallenges, useChallengeHistory, useWitnessingChallenges, useMyWitnessingChallenges } from '@/hooks/useChallenges';
+import { 
+  usePublicChallenges, 
+  useInvitedChallenges, 
+  useUpcomingChallenges, 
+  useLiveChallenges, 
+  useFlaggedChallenges, 
+  useDisputedChallenges, 
+  useHistoryChallenges,
+  useWitnessingChallenges,
+  useMyWitnessingChallenges 
+} from '@/hooks/useChallenges';
 import { ChallengeCard } from '@/components/challenges/ChallengeCard';
 
 type MajorTabType = 'challenges' | 'witnessing';
-type ChallengeSubTabType = 'public' | 'friends' | 'history';
-type WitnessingSubTabType = 'available' | 'my-witnessing';
+type ChallengeTabType = 'public' | 'invited' | 'upcoming' | 'live' | 'flagged' | 'disputed' | 'history';
+type WitnessingTabType = 'available' | 'my-witnessing';
 
 export default function ChallengesPage() {
   const router = useRouter();
   const [majorTab, setMajorTab] = useState<MajorTabType>('challenges');
-  const [challengeSubTab, setChallengeSubTab] = useState<ChallengeSubTabType>('public');
-  const [witnessingSubTab, setWitnessingSubTab] = useState<WitnessingSubTabType>('available');
+  const [challengeTab, setChallengeTab] = useState<ChallengeTabType>('public');
+  const [witnessingTab, setWitnessingTab] = useState<WitnessingTabType>('available');
 
-  const { data: publicData, isLoading: publicLoading } = usePublicChallenges({ limit: 20, page: 1 });
-  const { data: friendsData, isLoading: friendsLoading } = useFriendsChallenges({ limit: 20, page: 1 });
-  const { data: historyData, isLoading: historyLoading } = useChallengeHistory({ limit: 20, page: 1 });
-  const { data: witnessingData, isLoading: witnessingLoading } = useWitnessingChallenges({ limit: 20, page: 1 });
-  const { data: myWitnessingData, isLoading: myWitnessingLoading } = useMyWitnessingChallenges({ limit: 20, page: 1 });
+  // Challenge queries
+  const { data: publicData, isLoading: publicLoading, refetch: refetchPublic } = usePublicChallenges({ limit: 20, page: 1 });
+  const { data: invitedData, isLoading: invitedLoading, refetch: refetchInvited } = useInvitedChallenges({ limit: 20, page: 1 });
+  const { data: upcomingData, isLoading: upcomingLoading, refetch: refetchUpcoming } = useUpcomingChallenges({ limit: 20, page: 1 });
+  const { data: liveData, isLoading: liveLoading, refetch: refetchLive } = useLiveChallenges({ limit: 20, page: 1 });
+  const { data: flaggedData, isLoading: flaggedLoading, refetch: refetchFlagged } = useFlaggedChallenges({ limit: 20, page: 1 });
+  const { data: disputedData, isLoading: disputedLoading, refetch: refetchDisputed } = useDisputedChallenges({ limit: 20, page: 1 });
+  const { data: historyData, isLoading: historyLoading, refetch: refetchHistory } = useHistoryChallenges({ limit: 20, page: 1 });
+  
+  // Witnessing queries
+  const { data: witnessingData, isLoading: witnessingLoading, refetch: refetchWitnessing } = useWitnessingChallenges({ limit: 20, page: 1 });
+  const { data: myWitnessingData, isLoading: myWitnessingLoading, refetch: refetchMyWitnessing } = useMyWitnessingChallenges({ limit: 20, page: 1 });
 
-  const challenges = majorTab === 'challenges'
-    ? challengeSubTab === 'public'
-      ? publicData?.data?.challenges || []
-      : challengeSubTab === 'friends'
-      ? friendsData?.data?.challenges || []
-      : historyData?.data?.challenges || []
-    : witnessingSubTab === 'available'
-      ? witnessingData?.data?.challenges || []
-      : myWitnessingData?.data?.challenges || [];
+  const getChallenges = () => {
+    if (majorTab === 'challenges') {
+      switch (challengeTab) {
+        case 'public': return publicData?.data?.challenges || [];
+        case 'invited': return invitedData?.data?.challenges || [];
+        case 'upcoming': return upcomingData?.data?.challenges || [];
+        case 'live': return liveData?.data?.challenges || [];
+        case 'flagged': return flaggedData?.data?.challenges || [];
+        case 'disputed': return disputedData?.data?.challenges || [];
+        case 'history': return historyData?.data?.challenges || [];
+        default: return [];
+      }
+    } else {
+      switch (witnessingTab) {
+        case 'available': return witnessingData?.data?.challenges || [];
+        case 'my-witnessing': return myWitnessingData?.data?.challenges || [];
+        default: return [];
+      }
+    }
+  };
 
-  const isLoading = majorTab === 'challenges'
-    ? challengeSubTab === 'public'
-      ? publicLoading
-      : challengeSubTab === 'friends'
-      ? friendsLoading
-      : historyLoading
-    : witnessingSubTab === 'available'
-      ? witnessingLoading
-      : myWitnessingLoading;
+  const getLoading = () => {
+    if (majorTab === 'challenges') {
+      switch (challengeTab) {
+        case 'public': return publicLoading;
+        case 'invited': return invitedLoading;
+        case 'upcoming': return upcomingLoading;
+        case 'live': return liveLoading;
+        case 'flagged': return flaggedLoading;
+        case 'disputed': return disputedLoading;
+        case 'history': return historyLoading;
+        default: return false;
+      }
+    } else {
+      switch (witnessingTab) {
+        case 'available': return witnessingLoading;
+        case 'my-witnessing': return myWitnessingLoading;
+        default: return false;
+      }
+    }
+  };
+
+  const challenges = getChallenges();
+  const isLoading = getLoading();
+
+  const getEmptyMessage = () => {
+    if (majorTab === 'challenges') {
+      switch (challengeTab) {
+        case 'public': return 'No public challenges available';
+        case 'invited': return 'No pending invitations';
+        case 'upcoming': return 'No upcoming challenges';
+        case 'live': return 'No live challenges';
+        case 'flagged': return 'No flagged challenges';
+        case 'disputed': return 'No disputed challenges';
+        case 'history': return 'No challenge history';
+        default: return 'No challenges found';
+      }
+    } else {
+      switch (witnessingTab) {
+        case 'available': return 'No challenges available for witnessing';
+        case 'my-witnessing': return 'You are not witnessing any challenges';
+        default: return 'No challenges found';
+      }
+    }
+  };
+
+  const handleChallengeTabChange = (tab: ChallengeTabType) => {
+    setChallengeTab(tab);
+    switch (tab) {
+      case 'public': refetchPublic(); break;
+      case 'invited': refetchInvited(); break;
+      case 'upcoming': refetchUpcoming(); break;
+      case 'live': refetchLive(); break;
+      case 'flagged': refetchFlagged(); break;
+      case 'disputed': refetchDisputed(); break;
+      case 'history': refetchHistory(); break;
+    }
+  };
+
+  const handleWitnessingTabChange = (tab: WitnessingTabType) => {
+    setWitnessingTab(tab);
+    switch (tab) {
+      case 'available': refetchWitnessing(); break;
+      case 'my-witnessing': refetchMyWitnessing(); break;
+    }
+  };
+
+  const challengeTabs: { key: ChallengeTabType; label: string }[] = [
+    { key: 'public', label: 'Public' },
+    { key: 'invited', label: 'Invited' },
+    { key: 'upcoming', label: 'Upcoming' },
+    { key: 'live', label: 'Live' },
+    { key: 'flagged', label: 'Flagged' },
+    { key: 'disputed', label: 'Disputed' },
+    { key: 'history', label: 'History' },
+  ];
+
+  const witnessingTabs: { key: WitnessingTabType; label: string }[] = [
+    { key: 'available', label: 'Available' },
+    { key: 'my-witnessing', label: 'My Witnessing' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,17 +182,17 @@ export default function ChallengesPage() {
         {/* Sub Tabs */}
         {majorTab === 'challenges' && (
           <div className="flex gap-2 px-4 py-3 overflow-x-auto">
-            {['public', 'friends', 'history'].map((tab) => (
+            {challengeTabs.map((tab) => (
               <button
-                key={tab}
-                onClick={() => setChallengeSubTab(tab as ChallengeSubTabType)}
+                key={tab.key}
+                onClick={() => handleChallengeTabChange(tab.key)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                  challengeSubTab === tab
+                  challengeTab === tab.key
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700'
                 }`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -101,26 +200,19 @@ export default function ChallengesPage() {
 
         {majorTab === 'witnessing' && (
           <div className="flex gap-2 px-4 py-3 overflow-x-auto">
-            <button
-              onClick={() => setWitnessingSubTab('available')}
-              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                witnessingSubTab === 'available'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}
-            >
-              Available
-            </button>
-            <button
-              onClick={() => setWitnessingSubTab('my-witnessing')}
-              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                witnessingSubTab === 'my-witnessing'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}
-            >
-              My Witnessing
-            </button>
+            {witnessingTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => handleWitnessingTabChange(tab.key)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                  witnessingTab === tab.key
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -133,17 +225,7 @@ export default function ChallengesPage() {
           </div>
         ) : challenges.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-sm">
-              {majorTab === 'challenges'
-                ? challengeSubTab === 'public'
-                  ? 'No public challenges available'
-                  : challengeSubTab === 'friends'
-                  ? 'No challenges from friends'
-                  : 'No challenge history'
-                : witnessingSubTab === 'available'
-                ? 'No challenges available for witnessing'
-                : 'You are not witnessing any challenges'}
-            </p>
+            <p className="text-gray-500 text-sm">{getEmptyMessage()}</p>
           </div>
         ) : (
           <div className="space-y-3">

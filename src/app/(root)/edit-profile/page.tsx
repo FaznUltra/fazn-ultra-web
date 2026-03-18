@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Camera, User } from 'lucide-react';
+import { ArrowLeft, Camera, User, RefreshCw, Radio } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { StreamingAccountCard } from '@/components/profile/StreamingAccountCard';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { userService } from '@/services/user.service';
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -20,6 +22,16 @@ export default function EditProfilePage() {
   const [firstName, setFirstName] = useState(displayProfile?.firstName || '');
   const [lastName, setLastName] = useState(displayProfile?.lastName || '');
   const [phoneNumber, setPhoneNumber] = useState(displayProfile?.phoneNumber || '');
+
+  // Streaming status query
+  const { data: streamingStatusData, refetch: refetchStreamingStatus, isFetching: isCheckingStream } = useQuery({
+    queryKey: ['user-streaming-status'],
+    queryFn: () => userService.checkStreamingStatus(),
+    enabled: !!user,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+  });
+
+  const streamingStatus = streamingStatusData?.data;
 
   // Update state when profile data loads
   useEffect(() => {
@@ -217,6 +229,38 @@ export default function EditProfilePage() {
           <p className="text-sm text-gray-500 mb-4">
             Connect your streaming accounts to verify your channels
           </p>
+
+          {/* Live Streaming Status */}
+          {streamingStatus && (
+            <div className={`mb-4 rounded-xl p-4 border-2 ${streamingStatus.isLive ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Radio className={`h-5 w-5 ${streamingStatus.isLive ? 'text-green-600 animate-pulse' : 'text-gray-400'}`} />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {streamingStatus.isLive ? 'You are LIVE' : 'Not Streaming'}
+                    </p>
+                    {streamingStatus.isLive && streamingStatus.platform && (
+                      <p className="text-xs text-gray-600 capitalize">
+                        on {streamingStatus.platform}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    refetchStreamingStatus();
+                    toast.success('Checking streaming status...');
+                  }}
+                  disabled={isCheckingStream}
+                  className="p-2 hover:bg-white rounded-full transition-colors disabled:opacity-50"
+                  title="Refresh streaming status"
+                >
+                  <RefreshCw className={`h-5 w-5 text-gray-600 ${isCheckingStream ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <StreamingAccountCard

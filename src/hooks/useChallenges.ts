@@ -107,6 +107,7 @@ export const useChallengeHistory = (params?: { status?: string; limit?: number; 
   });
 };
 
+// New tab-based hooks
 export const usePublicChallenges = (params?: { limit?: number; page?: number }) => {
   return useQuery({
     queryKey: ['public-challenges', params],
@@ -114,6 +115,49 @@ export const usePublicChallenges = (params?: { limit?: number; page?: number }) 
   });
 };
 
+export const useInvitedChallenges = (params?: { limit?: number; page?: number }) => {
+  return useQuery({
+    queryKey: ['invited-challenges', params],
+    queryFn: () => challengeService.getInvitedChallenges(params),
+  });
+};
+
+export const useUpcomingChallenges = (params?: { limit?: number; page?: number }) => {
+  return useQuery({
+    queryKey: ['upcoming-challenges', params],
+    queryFn: () => challengeService.getUpcomingChallenges(params),
+  });
+};
+
+export const useLiveChallenges = (params?: { limit?: number; page?: number }) => {
+  return useQuery({
+    queryKey: ['live-challenges', params],
+    queryFn: () => challengeService.getLiveChallenges(params),
+  });
+};
+
+export const useFlaggedChallenges = (params?: { limit?: number; page?: number }) => {
+  return useQuery({
+    queryKey: ['flagged-challenges', params],
+    queryFn: () => challengeService.getFlaggedChallenges(params),
+  });
+};
+
+export const useDisputedChallenges = (params?: { limit?: number; page?: number }) => {
+  return useQuery({
+    queryKey: ['disputed-challenges', params],
+    queryFn: () => challengeService.getDisputedChallenges(params),
+  });
+};
+
+export const useHistoryChallenges = (params?: { limit?: number; page?: number }) => {
+  return useQuery({
+    queryKey: ['history-challenges', params],
+    queryFn: () => challengeService.getHistoryChallenges(params),
+  });
+};
+
+// Legacy hooks
 export const useFriendsChallenges = (params?: { limit?: number; page?: number }) => {
   return useQuery({
     queryKey: ['friends-challenges', params],

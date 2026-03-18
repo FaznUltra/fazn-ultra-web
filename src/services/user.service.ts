@@ -79,4 +79,13 @@ export const userService = {
     const response = await apiClient.get(`/users/${userId}`);
     return response.data;
   },
+
+  checkStreamingStatus: async (): Promise<ApiResponse<{
+    isLive: boolean;
+    platform?: string;
+    streamUrl?: string;
+  }>> => {
+    const response = await apiClient.get('/users/streaming-status');
+    return response.data;
+  },
 };

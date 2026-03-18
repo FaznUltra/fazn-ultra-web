@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -21,7 +21,8 @@ import {
   PlayCircle,
   Clipboard,
   Calendar,
-  User
+  User,
+  RefreshCw
 } from 'lucide-react';
 import { challengeService } from '@/services/challenge.service';
 import { StreamPlayer } from '@/components/challenges/StreamPlayer';
@@ -67,6 +68,7 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
   const [acceptorScore, setAcceptorScore] = useState('');
   const [flagReason, setFlagReason] = useState('');
   const [disputeReason, setDisputeReason] = useState('');
+  const [disputeTimeRemaining, setDisputeTimeRemaining] = useState<string>('');
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['challenge', resolvedParams.id],
@@ -83,7 +85,7 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
     enabled: !!user?._id,
   });
 
-  const { data: streamingStatusData } = useQuery({
+  const { data: streamingStatusData, refetch: refetchStreamingStatus, isFetching: isRefreshingStreaming } = useQuery({
     queryKey: ['streaming-status', resolvedParams.id],
     queryFn: () => challengeService.getStreamingStatus(resolvedParams.id),
     enabled: !!resolvedParams.id && !!data?.data?.challenge,
@@ -93,6 +95,39 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
   const challenge = data?.data?.challenge;
   const currentUserProfile = userProfileData?.data?.user;
   const streamingStatus = streamingStatusData?.data;
+
+  // Dispute countdown timer
+  useEffect(() => {
+    if (!challenge?.disputeDeadline) return;
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const deadline = new Date(challenge.disputeDeadline!).getTime();
+      const timeLeft = deadline - now;
+
+      if (timeLeft <= 0) {
+        setDisputeTimeRemaining('Expired');
+        return;
+      }
+
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+      if (hours > 0) {
+        setDisputeTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setDisputeTimeRemaining(`${minutes}m ${seconds}s`);
+      } else {
+        setDisputeTimeRemaining(`${seconds}s`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [challenge?.disputeDeadline]);
 
   // Mutations
   const acceptMutation = useMutation({
@@ -567,20 +602,33 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                   {/* Streaming Status for Creator */}
                   {streamingStatus && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-semibold text-blue-900">Your Stream Status</span>
-                        <div className="flex items-center gap-1">
-                          {streamingStatus.creator.isLive ? (
-                            <>
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                            </>
-                          )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              refetchStreamingStatus();
+                              toast.success('Refreshing streaming status...');
+                            }}
+                            disabled={isRefreshingStreaming}
+                            className="p-1 hover:bg-blue-100 rounded-full transition-colors disabled:opacity-50"
+                            title="Refresh streaming status"
+                          >
+                            <RefreshCw className={`h-4 w-4 text-blue-600 ${isRefreshingStreaming ? 'animate-spin' : ''}`} />
+                          </button>
+                          <div className="flex items-center gap-1">
+                            {streamingStatus.creator.isLive ? (
+                              <>
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-2">
@@ -636,20 +684,33 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                   {/* Streaming Status for Acceptor */}
                   {streamingStatus && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-semibold text-green-900">Your Stream Status</span>
-                        <div className="flex items-center gap-1">
-                          {streamingStatus.acceptor.isLive ? (
-                            <>
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                            </>
-                          )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              refetchStreamingStatus();
+                              toast.success('Refreshing streaming status...');
+                            }}
+                            disabled={isRefreshingStreaming}
+                            className="p-1 hover:bg-green-100 rounded-full transition-colors disabled:opacity-50"
+                            title="Refresh streaming status"
+                          >
+                            <RefreshCw className={`h-4 w-4 text-green-600 ${isRefreshingStreaming ? 'animate-spin' : ''}`} />
+                          </button>
+                          <div className="flex items-center gap-1">
+                            {streamingStatus.acceptor.isLive ? (
+                              <>
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-xs text-green-600 font-semibold">LIVE</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-2">
@@ -699,7 +760,20 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                 {/* Streaming Status for Witness */}
                 {streamingStatus && (
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-purple-900 mb-2">Live Streaming Status</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-purple-900">Live Streaming Status</p>
+                      <button
+                        onClick={() => {
+                          refetchStreamingStatus();
+                          toast.success('Refreshing streaming status...');
+                        }}
+                        disabled={isRefreshingStreaming}
+                        className="p-1 hover:bg-purple-100 rounded-full transition-colors disabled:opacity-50"
+                        title="Refresh streaming status"
+                      >
+                        <RefreshCw className={`h-3 w-3 text-purple-600 ${isRefreshingStreaming ? 'animate-spin' : ''}`} />
+                      </button>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-700">{streamingStatus.creator.displayName}</span>
@@ -797,7 +871,23 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
               <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
               Dispute Result
             </h3>
-            <p className="text-sm text-gray-600 mb-4">If you believe the result is incorrect, you can dispute it within the time limit.</p>
+            
+            {/* Countdown Timer */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                  <span className="text-sm font-semibold text-yellow-900">Time Remaining</span>
+                </div>
+                <span className="text-lg font-bold text-yellow-600 tabular-nums">
+                  {disputeTimeRemaining || 'Calculating...'}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              If you believe the result is incorrect, you can dispute it before the deadline expires.
+            </p>
             <button
               onClick={() => setShowDisputeModal(true)}
               className="w-full py-3 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700"

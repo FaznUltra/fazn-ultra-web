@@ -48,14 +48,64 @@ export const challengeService = {
     return response.data;
   },
 
+  // New tab-based endpoints
   getPublicChallenges: async (params?: {
     limit?: number;
     page?: number;
   }): Promise<ApiResponse<PaginatedChallenges>> => {
-    const response = await apiClient.get('/challenges/public', { params });
+    const response = await apiClient.get('/challenges/tabs/public', { params });
     return response.data;
   },
 
+  getInvitedChallenges: async (params?: {
+    limit?: number;
+    page?: number;
+  }): Promise<ApiResponse<PaginatedChallenges>> => {
+    const response = await apiClient.get('/challenges/tabs/invited', { params });
+    return response.data;
+  },
+
+  getUpcomingChallenges: async (params?: {
+    limit?: number;
+    page?: number;
+  }): Promise<ApiResponse<PaginatedChallenges>> => {
+    const response = await apiClient.get('/challenges/tabs/upcoming', { params });
+    return response.data;
+  },
+
+  getLiveChallenges: async (params?: {
+    limit?: number;
+    page?: number;
+  }): Promise<ApiResponse<PaginatedChallenges>> => {
+    const response = await apiClient.get('/challenges/tabs/live', { params });
+    return response.data;
+  },
+
+  getFlaggedChallenges: async (params?: {
+    limit?: number;
+    page?: number;
+  }): Promise<ApiResponse<PaginatedChallenges>> => {
+    const response = await apiClient.get('/challenges/tabs/flagged', { params });
+    return response.data;
+  },
+
+  getDisputedChallenges: async (params?: {
+    limit?: number;
+    page?: number;
+  }): Promise<ApiResponse<PaginatedChallenges>> => {
+    const response = await apiClient.get('/challenges/tabs/disputed', { params });
+    return response.data;
+  },
+
+  getHistoryChallenges: async (params?: {
+    limit?: number;
+    page?: number;
+  }): Promise<ApiResponse<PaginatedChallenges>> => {
+    const response = await apiClient.get('/challenges/tabs/history', { params });
+    return response.data;
+  },
+
+  // Legacy endpoints
   getFriendsChallenges: async (params?: {
     limit?: number;
     page?: number;
