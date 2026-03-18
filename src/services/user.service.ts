@@ -9,6 +9,10 @@ export interface UserProfile {
   email: string;
   profileImage?: string | null;
   profilePicture?: string;
+  phoneNumber?: string;
+  phoneVerified?: boolean;
+  phoneVerificationCode?: string;
+  phoneVerificationExpires?: Date;
   stats?: {
     totalChallenges: number;
     wins: number;
@@ -47,6 +51,7 @@ export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
   profileImage?: string;
+  phoneNumber?: string;
   streamingAccounts?: {
     youtube?: {
       channelUrl?: string;

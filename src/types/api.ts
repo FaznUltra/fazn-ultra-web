@@ -8,6 +8,10 @@ export interface User {
   profileImage?: string | null;
   profilePicture?: string;
   bio?: string;
+  phoneNumber?: string;
+  phoneVerified?: boolean;
+  phoneVerificationCode?: string;
+  phoneVerificationExpires?: Date;
   stats?: {
     totalChallenges: number;
     wins: number;

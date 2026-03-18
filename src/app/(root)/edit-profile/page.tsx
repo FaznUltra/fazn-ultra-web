@@ -19,6 +19,7 @@ export default function EditProfilePage() {
 
   const [firstName, setFirstName] = useState(displayProfile?.firstName || '');
   const [lastName, setLastName] = useState(displayProfile?.lastName || '');
+  const [phoneNumber, setPhoneNumber] = useState(displayProfile?.phoneNumber || '');
 
   // Handle OAuth callback
   useEffect(() => {
@@ -63,6 +64,9 @@ export default function EditProfilePage() {
     }
     if (lastName !== displayProfile?.lastName) {
       updates.lastName = lastName;
+    }
+    if (phoneNumber !== displayProfile?.phoneNumber) {
+      updates.phoneNumber = phoneNumber;
     }
 
     if (Object.keys(updates).length > 0) {
@@ -170,6 +174,30 @@ export default function EditProfilePage() {
                 className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed"
               />
               <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Enter phone number (e.g., +234...)"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              />
+              {displayProfile?.phoneVerified ? (
+                <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                  <span>✓</span> Phone number verified
+                </p>
+              ) : phoneNumber ? (
+                <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
+                  <span>⚠</span> Phone number not verified - Required to witness matches
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">Add phone number to become eligible as a witness</p>
+              )}
             </div>
           </div>
         </div>

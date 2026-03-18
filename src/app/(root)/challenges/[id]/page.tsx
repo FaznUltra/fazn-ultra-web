@@ -145,10 +145,9 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.message || 'Failed to volunteer as witness';
+      toast.error(errorMessage);
       if (errorMessage.includes('phone number')) {
         setShowPhoneVerificationModal(true);
-      } else {
-        toast.error(errorMessage);
       }
     },
   });
