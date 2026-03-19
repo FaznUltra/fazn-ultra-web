@@ -19,6 +19,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Ultra - Challenge Platform",
   description: "Join challenges, compete with friends, and win rewards",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({

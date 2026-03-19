@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Send, Lock, Copy } from 'lucide-react';
 import { privateChatService, PrivateChatMessage } from '@/services/privateChat.service';
 import { useAuth } from '@/hooks/useAuth';
+import { getSocket, connectSocket, disconnectSocket, joinChatRoom, leaveChatRoom, sendChatMessage } from '@/lib/socket';
 
 interface PrivateChatRoomProps {
   challengeId: string;
@@ -26,8 +27,16 @@ export function PrivateChatRoom({
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch messages
+  // Initialize WebSocket and fetch initial messages
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    // Connect socket
+    connectSocket(token);
+    const socket = getSocket();
+
+    // Fetch initial messages
     const fetchMessages = async () => {
       try {
         const response = await privateChatService.getPrivateChatMessages(challengeId);
@@ -38,10 +47,27 @@ export function PrivateChatRoom({
     };
 
     fetchMessages();
-    
-    // Poll for new messages every 5 seconds
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
+
+    // Join chat room
+    joinChatRoom(challengeId);
+
+    // Listen for new messages
+    socket.on('newPrivateMessage', (message: PrivateChatMessage) => {
+      setMessages((prev) => [...prev, message]);
+    });
+
+    // Listen for room code shared
+    socket.on('roomCodeShared', (data: { roomCode: string; message: PrivateChatMessage }) => {
+      setMessages((prev) => [...prev, data.message]);
+      toast.success('Room code shared!');
+    });
+
+    // Cleanup
+    return () => {
+      leaveChatRoom(challengeId);
+      socket.off('newPrivateMessage');
+      socket.off('roomCodeShared');
+    };
   }, [challengeId]);
 
   // Auto-scroll to bottom
@@ -49,25 +75,22 @@ export function PrivateChatRoom({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
     setLoading(true);
     try {
-      await privateChatService.sendPrivateChatMessage(challengeId, newMessage.trim());
+      // Send via WebSocket for instant delivery
+      sendChatMessage(challengeId, newMessage, 'TEXT');
       setNewMessage('');
-      
-      // Refresh messages
-      const response = await privateChatService.getPrivateChatMessages(challengeId);
-      setMessages(response.data.messages);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to send message');
+    } catch (error) {
+      toast.error('Failed to send message');
     } finally {
       setLoading(false);
     }
   };
 
-  const shareRoomCode = async () => {
+  const handleShareRoomCode = async () => {
     if (!roomCode.trim()) {
       toast.error('Please enter a room code');
       return;
@@ -75,15 +98,12 @@ export function PrivateChatRoom({
 
     setLoading(true);
     try {
-      await privateChatService.shareRoomCodeViaChat(challengeId, roomCode.trim());
+      // Send via WebSocket for instant delivery
+      sendChatMessage(challengeId, roomCode, 'ROOM_CODE');
       setRoomCode('');
-      toast.success('Room code shared successfully');
-      
-      // Refresh messages
-      const response = await privateChatService.getPrivateChatMessages(challengeId);
-      setMessages(response.data.messages);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to share room code');
+      toast.success('Room code shared!');
+    } catch (error) {
+      toast.error('Failed to share room code');
     } finally {
       setLoading(false);
     }
@@ -169,10 +189,10 @@ export function PrivateChatRoom({
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomCode(e.target.value)}
               placeholder="Enter room code"
               className="flex-1 h-10 rounded-lg border border-gray-300 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && shareRoomCode()}
+              onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleShareRoomCode()}
             />
             <button
-              onClick={shareRoomCode}
+              onClick={handleShareRoomCode}
               disabled={loading || !roomCode.trim()}
               className="px-4 h-10 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -191,10 +211,10 @@ export function PrivateChatRoom({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
             className="flex-1 h-10 rounded-lg border border-gray-300 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && sendMessage()}
+            onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendMessage()}
           />
           <button
-            onClick={sendMessage}
+            onClick={handleSendMessage}
             disabled={loading || !newMessage.trim()}
             className="px-4 h-10 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >

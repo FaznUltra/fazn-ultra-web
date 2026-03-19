@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { challengeService } from '@/services/challenge.service';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { FriendsSelectionModal } from '@/components/challenge/FriendsSelectionModal';
 import {
   GameType,
   GameName,
@@ -47,6 +48,8 @@ export default function CreateChallengePage() {
   );
   const [includeExtraTime, setIncludeExtraTime] = useState(false);
   const [includePenalty, setIncludePenalty] = useState(false);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState<{ id: string; name: string } | null>(null);
 
   const { data: gamesData, isLoading: gamesLoading } = useQuery({
     queryKey: ['available-games'],
@@ -89,6 +92,12 @@ export default function CreateChallengePage() {
       return;
     }
 
+    // Validate direct challenge has a selected friend
+    if (challengeType === 'DIRECT' && !selectedFriend) {
+      toast.error('Please select a friend to challenge');
+      return;
+    }
+
     const challengeData: CreateChallengeRequest = {
       gameType: selectedGame.gameType,
       gameName: selectedGame.gameName,
@@ -100,6 +109,7 @@ export default function CreateChallengePage() {
       matchStartTime: matchDate.toISOString(),
       includeExtraTime,
       includePenalty,
+      ...(challengeType === 'DIRECT' && selectedFriend ? { directOpponentId: selectedFriend.id } : {}),
     };
 
     createChallengeMutation.mutate(challengeData);
@@ -223,7 +233,15 @@ export default function CreateChallengePage() {
                 return (
                   <button
                     key={type}
-                    onClick={() => setChallengeType(type)}
+                    onClick={() => {
+                      if (type === 'DIRECT') {
+                        setChallengeType(type);
+                        setShowFriendsModal(true);
+                      } else {
+                        setChallengeType(type);
+                        setSelectedFriend(null);
+                      }
+                    }}
                     className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all border"
                     style={{
                       borderColor: isSelected ? '#7C8CFF' : 'rgba(255,255,255,0.1)',
@@ -309,7 +327,8 @@ export default function CreateChallengePage() {
                 value={acceptanceDueDate}
                 onChange={(e) => setAcceptanceDueDate(e.target.value)}
                 min={new Date().toISOString().slice(0, 16)}
-                className={`${inputClass} pl-11`}
+                className={`${inputClass} pl-11 text-[16px]`}
+                style={{ maxWidth: '100%' }}
               />
             </div>
           </div>
@@ -330,7 +349,8 @@ export default function CreateChallengePage() {
                 value={matchStartTime}
                 onChange={(e) => setMatchStartTime(e.target.value)}
                 min={acceptanceDueDate}
-                className={`${inputClass} pl-11`}
+                className={`${inputClass} pl-11 text-[16px]`}
+                style={{ maxWidth: '100%' }}
               />
             </div>
           </div>
@@ -406,6 +426,22 @@ export default function CreateChallengePage() {
           </div>
         </div>
 
+        {/* Selected Friend Indicator */}
+        {challengeType === 'DIRECT' && selectedFriend && (
+          <div className="rounded-2xl border border-[#7C8CFF]/20 p-4 flex items-center justify-between" style={{ background: 'rgba(124,140,255,0.05)' }}>
+            <div>
+              <p className="text-xs text-white/50 mb-1">Challenging</p>
+              <p className="text-sm font-bold text-[#7C8CFF]">{selectedFriend.name}</p>
+            </div>
+            <button
+              onClick={() => setShowFriendsModal(true)}
+              className="text-xs text-[#7C8CFF] hover:text-[#00FFB2] transition-colors font-semibold"
+            >
+              Change →
+            </button>
+          </div>
+        )}
+
         {/* Create Button */}
         <button
           onClick={handleCreateChallenge}
@@ -426,6 +462,15 @@ export default function CreateChallengePage() {
           )}
         </button>
       </div>
+
+      {/* Friends Selection Modal */}
+      <FriendsSelectionModal
+        isOpen={showFriendsModal}
+        onClose={() => setShowFriendsModal(false)}
+        onSelectFriend={(friendId, friendName) => {
+          setSelectedFriend({ id: friendId, name: friendName });
+        }}
+      />
     </div>
   );
 }
