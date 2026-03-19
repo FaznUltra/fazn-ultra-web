@@ -70,6 +70,8 @@ export interface Challenge {
   };
   witnessUsername?: string;
   witnessVerifiedAt?: string;
+  privateChatRoomId?: string;
+  hashtag?: string;
   roomCode?: string;
   roomCodeSharedAt?: string;
   creatorJoinedRoom?: boolean;

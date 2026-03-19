@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Gamepad2, Users, Eye, ChevronRight, Target } from 'lucide-react';
+import { Gamepad2, Users, Eye, ChevronRight, Target, Share2 } from 'lucide-react';
 import { Challenge } from '@/types/challenge';
+import { toast } from 'sonner';
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -30,11 +31,19 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const opponent = challenge.acceptor?.displayName || 'Open Slot';
   const witness = challenge.witness?.displayName;
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/watch/${challenge._id}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success('Share link copied to clipboard!');
+  };
+
   return (
-    <button
-      onClick={() => router.push(`/challenges/${challenge._id}`)}
-      className="w-full rounded-3xl border border-white/5 bg-[#080C14] p-5 text-left transition-all hover:border-[#00FFB2]/40 hover:bg-[#0F1523] group"
-    >
+    <div className="relative w-full rounded-3xl border border-white/5 bg-[#080C14] p-5 transition-all hover:border-[#00FFB2]/40 hover:bg-[#0F1523] group">
+      <button
+        onClick={() => router.push(`/challenges/${challenge._id}`)}
+        className="w-full text-left"
+      >
       <div className="flex items-start gap-4">
         <div className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
           <Gamepad2 className="h-5 w-5 text-white/80" />
@@ -72,6 +81,16 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           <ChevronRight className="h-4 w-4 text-white/40 group-hover:text-white transition-colors" />
         </div>
       </div>
-    </button>
+      </button>
+      
+      {/* Share button */}
+      <button
+        onClick={handleShare}
+        className="absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-[#00FFB2]/20 transition-all z-10"
+        title="Share challenge"
+      >
+        <Share2 className="h-4 w-4 text-[#00FFB2]" />
+      </button>
+    </div>
   );
 }

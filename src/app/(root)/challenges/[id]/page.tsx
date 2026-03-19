@@ -22,7 +22,12 @@ import {
   Clipboard,
   Calendar,
   User,
-  RefreshCw
+  RefreshCw,
+  Share2,
+  Copy,
+  X as XIcon,
+  Facebook,
+  MessageSquare
 } from 'lucide-react';
 import { challengeService } from '@/services/challenge.service';
 import { StreamPlayer } from '@/components/challenges/StreamPlayer';
@@ -62,6 +67,7 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [showPhoneVerificationModal, setShowPhoneVerificationModal] = useState(false);
   const [isSpectating, setIsSpectating] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   
   const [streamingPlatform, setStreamingPlatform] = useState<StreamingPlatform | null>(null);
   const [streamingUrl, setStreamingUrl] = useState('');
@@ -412,7 +418,67 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
             <ArrowLeft className="h-5 w-5 text-white/70" />
           </button>
           <span className="text-sm font-semibold text-white/80">Challenge Detail</span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <div className="relative">
+              <button
+                onClick={() => setShowShareMenu(!showShareMenu)}
+                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <Share2 className="h-4 w-4 text-[#00FFB2]" />
+              </button>
+              
+              {showShareMenu && (
+                <div className="absolute right-0 top-full mt-2 p-2 rounded-xl border border-white/10 shadow-2xl z-50" style={{ background: '#0F1523', minWidth: '200px' }}>
+                  <button
+                    onClick={() => {
+                      const shareUrl = `${window.location.origin}/watch/${challenge?._id}`;
+                      const text = `🎮 Watch ${challenge?.creator.displayName} vs ${challenge?.acceptor?.displayName || 'TBA'} compete in ${challenge?.gameName.replace(/_/g, ' ')} for ${formatCurrency(challenge?.stakeAmount)}! ${challenge?.hashtag || ''}`;
+                      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+                      setShowShareMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                  >
+                    <XIcon className="w-4 h-4 text-white/60" />
+                    <span className="text-sm text-white">Share on X</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const shareUrl = `${window.location.origin}/watch/${challenge?._id}`;
+                      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+                      setShowShareMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                  >
+                    <Facebook className="w-4 h-4 text-white/60" />
+                    <span className="text-sm text-white">Share on Facebook</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const shareUrl = `${window.location.origin}/watch/${challenge?._id}`;
+                      const text = `🎮 Watch ${challenge?.creator.displayName} vs ${challenge?.acceptor?.displayName || 'TBA'} compete in ${challenge?.gameName.replace(/_/g, ' ')} for ${formatCurrency(challenge?.stakeAmount)}! ${challenge?.hashtag || ''}`;
+                      window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + shareUrl)}`, '_blank');
+                      setShowShareMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                  >
+                    <MessageSquare className="w-4 h-4 text-white/60" />
+                    <span className="text-sm text-white">Share on WhatsApp</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const shareUrl = `${window.location.origin}/watch/${challenge?._id}`;
+                      navigator.clipboard.writeText(shareUrl);
+                      toast.success('Link copied to clipboard!');
+                      setShowShareMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                  >
+                    <Copy className="w-4 h-4 text-white/60" />
+                    <span className="text-sm text-white">Copy Link</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <span
               className="px-3 py-1 rounded-full text-xs font-bold tracking-wide"
               style={{ color: statusTheme.color, background: statusTheme.bg }}
@@ -431,17 +497,81 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
           <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${statusTheme.color}80, transparent)` }} />
           <div className="p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4 mb-5">
-              <div>
+              <div className="flex-1">
                 <p className="text-xs uppercase tracking-widest text-white/40 mb-1">{challenge.gameType || 'Gaming Challenge'}</p>
                 <h1 className="text-xl sm:text-2xl font-bold leading-tight">{challenge.gameName.replace(/_/g, ' ')}</h1>
                 <p className="text-xs text-white/40 mt-1">{challenge.platform} • {challenge.challengeType}</p>
               </div>
-              {challenge.status === 'LIVE' && (
-                <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,107,107,0.15)' }}>
-                  <div className="w-1.5 h-1.5 bg-[#FF6B6B] rounded-full animate-pulse" />
-                  <span className="text-[11px] font-bold text-[#FF6B6B]">LIVE</span>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {challenge.status === 'LIVE' && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,107,107,0.15)' }}>
+                    <div className="w-1.5 h-1.5 bg-[#FF6B6B] rounded-full animate-pulse" />
+                    <span className="text-[11px] font-bold text-[#FF6B6B]">LIVE</span>
+                  </div>
+                )}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowShareMenu(!showShareMenu)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:scale-105"
+                    style={{ background: '#00FFB2', color: '#05070b' }}
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </button>
+
+                  {showShareMenu && (
+                    <div className="absolute right-0 top-full mt-2 p-2 rounded-xl border border-white/10 shadow-2xl z-50" style={{ background: '#0F1523', minWidth: '200px' }}>
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/watch/${challenge._id}`;
+                          const text = `🎮 Watch ${challenge.creator.displayName} vs ${challenge.acceptor?.displayName || 'TBA'} compete in ${challenge.gameName.replace(/_/g, ' ')} for ${formatCurrency(challenge.stakeAmount)}! ${challenge.hashtag || ''}`;
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                      >
+                        <XIcon className="w-4 h-4 text-white/60" />
+                        <span className="text-sm text-white">Share on X</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/watch/${challenge._id}`;
+                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                      >
+                        <Facebook className="w-4 h-4 text-white/60" />
+                        <span className="text-sm text-white">Share on Facebook</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/watch/${challenge._id}`;
+                          const text = `🎮 Watch ${challenge.creator.displayName} vs ${challenge.acceptor?.displayName || 'TBA'} compete in ${challenge.gameName.replace(/_/g, ' ')} for ${formatCurrency(challenge.stakeAmount)}! ${challenge.hashtag || ''}`;
+                          window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + shareUrl)}`, '_blank');
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                      >
+                        <MessageSquare className="w-4 h-4 text-white/60" />
+                        <span className="text-sm text-white">Share on WhatsApp</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/watch/${challenge._id}`;
+                          navigator.clipboard.writeText(shareUrl);
+                          toast.success('Link copied to clipboard!');
+                          setShowShareMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                      >
+                        <Copy className="w-4 h-4 text-white/60" />
+                        <span className="text-sm text-white">Copy Link</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Players row */}
@@ -839,6 +969,18 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── Private Chat ── */}
+        {(isCreator || isAcceptor || isWitness) && challenge.privateChatRoomId && (
+          <div className={`${panel} p-0 overflow-hidden`}>
+            <PrivateChatRoom
+              challengeId={resolvedParams.id}
+              isCreator={isCreator}
+              isAcceptor={isAcceptor}
+              isWitness={isWitness}
+            />
           </div>
         )}
 
