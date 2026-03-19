@@ -72,13 +72,15 @@ export default function SupportTicketPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#03060b]">
+    <div className="min-h-screen bg-[#03060b] text-white flex flex-col pb-24 lg:pb-6">
       {/* Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(3,6,11,0.95)' }}>
+      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5 lg:hidden" style={{ background: 'rgba(3,6,11,0.8)' }}>
         <div className="flex items-center justify-between h-14 px-4">
-          <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
-            <ArrowLeft className="h-5 w-5 text-white/70" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+              <ArrowLeft className="h-5 w-5 text-white/70" />
+            </button>
+          </div>
           <div className="flex-1 text-center mx-3">
             <h1 className="text-sm font-bold truncate text-white">{ticket.subject}</h1>
             <p className="text-[10px] uppercase font-bold tracking-wide" style={{ color: getStatusColor() }}>{ticket.status.replace('_', ' ')}</p>

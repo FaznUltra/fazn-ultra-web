@@ -48,9 +48,9 @@ export default function CreateSupportTicketPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#03060b] text-white pb-24">
+    <div className="min-h-screen bg-[#03060b] text-white pb-24 md:pb-8 lg:pb-4">
       {/* Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(3,6,11,0.8)' }}>
+      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5 lg:hidden" style={{ background: 'rgba(3,6,11,0.8)' }}>
         <div className="flex items-center gap-3 h-14 px-4">
           <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
             <ArrowLeft className="h-5 w-5 text-white/70" />

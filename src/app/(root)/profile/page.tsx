@@ -36,7 +36,7 @@ export default function ProfilePage() {
   const displayProfile = profile || user;
 
   return (
-    <div className="min-h-screen bg-[#03060b] text-white pb-24">
+    <div className="min-h-screen bg-[#03060b] text-white pb-24 lg:pb-6">
       {/* Hero gradient background */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#131A31] via-[#0B0F1B] to-[#05070C]" />

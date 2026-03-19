@@ -149,7 +149,7 @@ export default function ChallengesPage() {
 
   return (
     <div className="min-h-screen bg-[#03060b] text-white">
-      <div className="max-w-6xl mx-auto px-4 py-6 pb-24 space-y-6">
+      <div className="lg:max-w-none px-4 lg:px-0 py-6 pb-24 lg:pb-6 space-y-6">
         {/* Hero */}
         <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#131A31] via-[#0B0F1B] to-[#05070C] p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-3">

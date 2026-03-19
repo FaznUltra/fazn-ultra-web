@@ -12,7 +12,7 @@ export function TopBar() {
   const balance = wallet?.currencies?.find((c) => c.code === 'NGN')?.balance || 0;
 
   return (
-    <header className="sticky top-0 z-[9999999]" style={{ background: 'linear-gradient(90deg, #050709 0%, #0F1621 100%)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+    <header className="sticky top-0 z-[9999999] lg:hidden" style={{ background: 'linear-gradient(90deg, #050709 0%, #0F1621 100%)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
       <div className="flex items-center justify-between h-14 px-4 max-w-7xl mx-auto">
         <Link href="/" className="flex items-center" aria-label="FAZN Home">
           <span className="font-display tracking-[0.4em] text-lg md:text-xl text-white">

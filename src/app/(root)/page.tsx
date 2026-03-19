@@ -68,7 +68,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#03060b] text-white">
-      <div className="max-w-6xl mx-auto px-4 py-6 pb-28 space-y-6">
+      <div className="lg:max-w-none px-4 lg:px-0 py-6 pb-28 lg:pb-6 space-y-6">
         {/* Hero Section */}
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#131A31] via-[#0B0F1B] to-[#05070C] p-6 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">

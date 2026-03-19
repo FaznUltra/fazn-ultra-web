@@ -7,7 +7,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen" style={{ background: 'var(--ultra-bg)' }}>
       <TopBar />
-      <main className="">{children}</main>
+      <main className="pb-20">{children}</main>
       <BottomNav />
     </div>
   );

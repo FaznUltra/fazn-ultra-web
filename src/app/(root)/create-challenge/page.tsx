@@ -120,7 +120,7 @@ export default function CreateChallengePage() {
   return (
     <div className="min-h-screen bg-[#03060b] text-white">
       {/* Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(3,6,11,0.8)' }}>
+      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5 lg:hidden" style={{ background: 'rgba(3,6,11,0.8)' }}>
         <div className="flex items-center gap-3 h-14 px-4 max-w-3xl mx-auto">
           <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
             <ArrowLeft className="h-5 w-5 text-white/70" />
@@ -129,7 +129,8 @@ export default function CreateChallengePage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-5 pb-24">
+      {/* Main Content */}
+      <div className="max-w-3xl mx-auto px-4 lg:px-0 py-6 pb-24 lg:pb-6 space-y-5">
         {/* Hero Section */}
         <div className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#131A31] via-[#0B0F1B] to-[#05070C] p-6 overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-[#00FFB2]/5 via-transparent to-[#7C8CFF]/5 pointer-events-none" />

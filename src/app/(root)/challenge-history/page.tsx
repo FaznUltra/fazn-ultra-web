@@ -26,10 +26,10 @@ export default function ChallengeHistoryPage() {
   const challenges = data?.data?.challenges || [];
 
   return (
-    <div className="min-h-screen bg-[#03060b] text-white pb-24">
+    <div className="min-h-screen bg-[#03060b] text-white pb-24 lg:pb-6">
 
       {/* ── Header ── */}
-      <div className="border-b border-white/[0.05]">
+      <div className="border-b border-white/[0.05] lg:hidden">
         <div className="flex items-center gap-3 h-14 px-4">
           <button
             onClick={() => router.back()}

@@ -1,4 +1,4 @@
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 export default function RootAppLayout({
@@ -8,7 +8,7 @@ export default function RootAppLayout({
 }) {
   return (
     <ProtectedRoute>
-      <MobileLayout>{children}</MobileLayout>
+      <ResponsiveLayout>{children}</ResponsiveLayout>
     </ProtectedRoute>
   );
 }

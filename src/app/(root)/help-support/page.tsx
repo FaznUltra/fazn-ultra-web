@@ -68,14 +68,16 @@ export default function HelpSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#03060b] text-white pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(3,6,11,0.8)' }}>
-        <div className="flex items-center justify-between h-14 px-4">
-          <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
-            <ArrowLeft className="h-5 w-5 text-white/70" />
-          </button>
-          <h1 className="text-base font-bold">Help & Support</h1>
+    <div className="min-h-screen bg-[#03060b] text-white">
+      <div className="p-4 lg:p-0 pb-24 lg:pb-6 space-y-5">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors lg:hidden">
+              <ArrowLeft className="h-5 w-5 text-white/70" />
+            </button>
+            <h1 className="text-base font-bold">Help & Support</h1>
+          </div>
           <button
             onClick={() => router.push('/create-support-ticket')}
             className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:scale-[1.05] active:scale-[0.95]"
@@ -84,9 +86,8 @@ export default function HelpSupportPage() {
             <Plus className="h-4 w-4" />
           </button>
         </div>
-      </div>
 
-      <div className="p-4">
+        <div className="space-y-3">
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-white/10 border-t-[#00FFB2]" />

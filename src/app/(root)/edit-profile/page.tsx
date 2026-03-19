@@ -103,7 +103,7 @@ export default function EditProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#03060b] text-white pb-24">
+    <div className="min-h-screen bg-[#03060b] text-white pb-24 lg:pb-6">
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(3,6,11,0.8)' }}>
         <div className="flex items-center gap-3 h-14 px-4">

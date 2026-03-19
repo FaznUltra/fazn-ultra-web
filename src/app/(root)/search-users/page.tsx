@@ -19,13 +19,13 @@ export default function SearchUsersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#03060b] text-white pb-24">
+    <div className="min-h-screen bg-[#03060b] text-white pb-24 lg:pb-6">
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-40 border-b border-white/[0.05] bg-[#03060b]/80 backdrop-blur-lg">
-        <div className="flex items-center gap-3 h-14 px-4">
+        <div className="flex items-center gap-3 h-14 px-4 lg:px-0">
           <button
             onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-white/[0.06] flex-shrink-0"
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-white/[0.06] flex-shrink-0 lg:hidden"
           >
             <ArrowLeft className="h-5 w-5 text-white/60" />
           </button>

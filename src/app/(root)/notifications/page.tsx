@@ -42,15 +42,14 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-[#03060b] text-white pb-24">
 
       {/* ── Header ── */}
-      <div className="border-b border-white/[0.05]">
-        <div className="flex items-center justify-between h-14 px-4">
-          <button
-            onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-xl hover:bg-white/[0.06] transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-white/60" />
-          </button>
-
+      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5 lg:hidden" style={{ background: 'rgba(3,6,11,0.8)' }}>
+        <div className="flex items-center justify-between h-14 px-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+              <ArrowLeft className="h-5 w-5 text-white/70" />
+            </button>
+            <h1 className="text-base font-bold">Notifications</h1>
+          </div>
           <button
             onClick={() => markAllAsRead()}
             disabled={unreadCount === 0}

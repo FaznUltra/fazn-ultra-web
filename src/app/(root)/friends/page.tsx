@@ -56,20 +56,22 @@ export default function FriendsPage() {
   const isLoading = getCurrentLoading();
 
   return (
-    <div className="min-h-screen bg-[#03060b] text-white pb-24">
-      {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-40 border-b border-white/[0.05] bg-[#03060b]/80 backdrop-blur-lg">
-        <div className="flex items-center justify-between h-14 px-4">
-          <div>
-            <h1 className="text-base font-bold leading-none">Friends</h1>
+    <div className="min-h-screen bg-[#03060b] text-white">
+      <div className="p-4 lg:p-0 pb-24 lg:pb-6 space-y-5">
+        {/* ── Sticky header ── */}
+        <div className="sticky top-0 z-40 border-b border-white/[0.05] bg-[#03060b]/80 backdrop-blur-lg">
+          <div className="flex items-center justify-between h-14 px-4">
+            <div>
+              <h1 className="text-base font-bold leading-none">Friends</h1>
+            </div>
+            <button
+              onClick={() => router.push('/search-users')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95"
+              style={{ background: '#00FFB2' }}
+            >
+              <UserPlus className="h-4 w-4" style={{ color: '#05070b' }} />
+            </button>
           </div>
-          <button
-            onClick={() => router.push('/search-users')}
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95"
-            style={{ background: '#00FFB2' }}
-          >
-            <UserPlus className="h-4 w-4" style={{ color: '#05070b' }} />
-          </button>
         </div>
 
         {/* Tabs */}
