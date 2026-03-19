@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Camera, User, RefreshCw, Radio } from 'lucide-react';
+import { ArrowLeft, Camera, User, RefreshCw, Radio, UserCircle, Video } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
@@ -103,35 +103,44 @@ export default function EditProfilePage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#03060b] text-white pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
-        <div className="flex items-center gap-3 h-12 px-4">
-          <button onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" style={{ color: 'var(--ultra-text)' }} />
+      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(3,6,11,0.8)' }}>
+        <div className="flex items-center gap-3 h-14 px-4">
+          <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+            <ArrowLeft className="h-5 w-5 text-white/70" />
           </button>
-          <h1 className="text-base font-bold" style={{ color: 'var(--ultra-text)' }}>Edit Profile</h1>
+          <h1 className="text-base font-bold">Edit Profile</h1>
         </div>
       </div>
 
       <div className="pb-8">
         {/* Avatar Section */}
-        <div className="flex flex-col items-center py-6">
-          {displayProfile?.profileImage ? (
-            <Image
-              src={displayProfile.profileImage}
-              alt="Profile"
-              width={80}
-              height={80}
-              className="rounded-2xl mb-3"
-              style={{ border: '3px solid var(--ultra-primary)' }}
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-3" style={{ border: '3px solid var(--ultra-primary)' }}>
-              <User className="h-8 w-8" style={{ color: 'var(--ultra-primary)' }} />
-            </div>
-          )}
-          <button className="flex items-center gap-1.5" style={{ color: 'var(--ultra-primary)' }}>
+        <div className="flex flex-col items-center py-8 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#131A31]/20 to-transparent" />
+          <div className="relative">
+            {displayProfile?.profileImage ? (
+              <div className="relative">
+                <Image
+                  src={displayProfile.profileImage}
+                  alt="Profile"
+                  width={96}
+                  height={96}
+                  className="rounded-3xl"
+                  style={{ border: '3px solid #00FFB2' }}
+                />
+                <div className="absolute inset-0 rounded-3xl" style={{ boxShadow: '0 0 40px rgba(0,255,178,0.3)' }} />
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="w-24 h-24 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(0,255,178,0.12)', border: '3px solid #00FFB2' }}>
+                  <User className="h-10 w-10 text-[#00FFB2]" />
+                </div>
+                <div className="absolute inset-0 rounded-3xl" style={{ boxShadow: '0 0 40px rgba(0,255,178,0.3)' }} />
+              </div>
+            )}
+          </div>
+          <button className="flex items-center gap-2 mt-4 px-4 py-2 rounded-full transition-all hover:scale-[1.02]" style={{ background: 'rgba(0,255,178,0.12)', color: '#00FFB2', border: '1px solid rgba(0,255,178,0.2)' }}>
             <Camera className="h-4 w-4" />
             <span className="text-xs font-semibold">Change Photo</span>
           </button>
@@ -139,11 +148,14 @@ export default function EditProfilePage() {
 
         {/* Personal Information */}
         <div className="px-4">
-          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ultra-text)' }}>Personal Information</h2>
+          <div className="flex items-center gap-2 mb-4">
+            <UserCircle className="h-4 w-4 text-[#00FFB2]" />
+            <h2 className="text-sm font-bold">Personal Information</h2>
+          </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
+              <label className="block text-xs font-semibold mb-2 text-white/60">
                 First Name
               </label>
               <input
@@ -151,13 +163,12 @@ export default function EditProfilePage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="Enter first name"
-                className="w-full px-3 py-2.5 bg-white rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2"
-                style={{ border: '1px solid var(--ultra-border)', color: 'var(--ultra-text)' } as React.CSSProperties}
+                className="w-full px-4 py-3 rounded-xl text-sm bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 focus:border-[#00FFB2]/50 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
+              <label className="block text-xs font-semibold mb-2 text-white/60">
                 Last Name
               </label>
               <input
@@ -165,41 +176,38 @@ export default function EditProfilePage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Enter last name"
-                className="w-full px-3 py-2.5 bg-white rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2"
-                style={{ border: '1px solid var(--ultra-border)', color: 'var(--ultra-text)' } as React.CSSProperties}
+                className="w-full px-4 py-3 rounded-xl text-sm bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 focus:border-[#00FFB2]/50 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
+              <label className="block text-xs font-semibold mb-2 text-white/60">
                 Display Name
               </label>
               <input
                 type="text"
                 value={displayProfile?.displayName || ''}
                 disabled
-                className="w-full px-3 py-2.5 rounded-xl text-sm cursor-not-allowed"
-                style={{ background: 'var(--ultra-bg)', border: '1px solid var(--ultra-border)', color: 'var(--ultra-text-muted)' }}
+                className="w-full px-4 py-3 rounded-xl text-sm cursor-not-allowed bg-white/[0.02] border border-white/5 text-white/40"
               />
-              <p className="text-[10px] mt-1" style={{ color: 'var(--ultra-text-muted)' }}>Display name cannot be changed</p>
+              <p className="text-[10px] mt-1.5 text-white/30">Display name cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
+              <label className="block text-xs font-semibold mb-2 text-white/60">
                 Email
               </label>
               <input
                 type="email"
                 value={displayProfile?.email || ''}
                 disabled
-                className="w-full px-3 py-2.5 rounded-xl text-sm cursor-not-allowed"
-                style={{ background: 'var(--ultra-bg)', border: '1px solid var(--ultra-border)', color: 'var(--ultra-text-muted)' }}
+                className="w-full px-4 py-3 rounded-xl text-sm cursor-not-allowed bg-white/[0.02] border border-white/5 text-white/40"
               />
-              <p className="text-[10px] mt-1" style={{ color: 'var(--ultra-text-muted)' }}>Email cannot be changed</p>
+              <p className="text-[10px] mt-1.5 text-white/30">Email cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
+              <label className="block text-xs font-semibold mb-2 text-white/60">
                 Phone Number
               </label>
               <input
@@ -207,19 +215,18 @@ export default function EditProfilePage() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="Enter phone number (e.g., +234...)"
-                className="w-full px-3 py-2.5 bg-white rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2"
-                style={{ border: '1px solid var(--ultra-border)', color: 'var(--ultra-text)' } as React.CSSProperties}
+                className="w-full px-4 py-3 rounded-xl text-sm bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 focus:border-[#00FFB2]/50 transition-all"
               />
               {displayProfile?.phoneVerified ? (
-                <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#059669' }}>
+                <p className="text-[10px] mt-1.5 flex items-center gap-1 text-[#00FFB2]">
                   <span>✓</span> Phone number verified
                 </p>
               ) : phoneNumber ? (
-                <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#D97706' }}>
+                <p className="text-[10px] mt-1.5 flex items-center gap-1 text-[#FBCB4A]">
                   <span>⚠</span> Not verified - Required to witness matches
                 </p>
               ) : (
-                <p className="text-[10px] mt-1" style={{ color: 'var(--ultra-text-muted)' }}>Add phone number to become eligible as a witness</p>
+                <p className="text-[10px] mt-1.5 text-white/30">Add phone number to become eligible as a witness</p>
               )}
             </div>
           </div>
@@ -227,26 +234,29 @@ export default function EditProfilePage() {
 
         {/* Streaming Accounts */}
         <div className="px-4 mt-6">
-          <h2 className="text-sm font-bold mb-1" style={{ color: 'var(--ultra-text)' }}>Streaming Accounts</h2>
-          <p className="text-[11px] mb-3" style={{ color: 'var(--ultra-text-muted)' }}>
+          <div className="flex items-center gap-2 mb-1">
+            <Video className="h-4 w-4 text-[#FF6B6B]" />
+            <h2 className="text-sm font-bold">Streaming Accounts</h2>
+          </div>
+          <p className="text-xs mb-4 text-white/50">
             Connect your streaming accounts to verify your channels
           </p>
 
           {/* Live Streaming Status */}
           {streamingStatus && (
-            <div className="mb-3 rounded-xl p-3" style={{
-              background: streamingStatus.isLive ? '#ECFDF5' : 'var(--ultra-bg)',
-              border: streamingStatus.isLive ? '1px solid #A7F3D0' : '1px solid var(--ultra-border)',
+            <div className="mb-4 rounded-2xl p-4 border" style={{
+              background: streamingStatus.isLive ? 'rgba(255,107,107,0.08)' : 'rgba(255,255,255,0.02)',
+              borderColor: streamingStatus.isLive ? 'rgba(255,107,107,0.3)' : 'rgba(255,255,255,0.05)',
             }}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Radio className="h-4 w-4" style={{ color: streamingStatus.isLive ? '#059669' : 'var(--ultra-text-muted)' }} />
+                <div className="flex items-center gap-2.5">
+                  <Radio className="h-4 w-4" style={{ color: streamingStatus.isLive ? '#FF6B6B' : 'rgba(255,255,255,0.3)' }} />
                   <div>
-                    <p className="text-xs font-semibold" style={{ color: 'var(--ultra-text)' }}>
+                    <p className="text-xs font-semibold" style={{ color: streamingStatus.isLive ? '#FF6B6B' : 'white' }}>
                       {streamingStatus.isLive ? 'You are LIVE' : 'Not Streaming'}
                     </p>
                     {streamingStatus.isLive && streamingStatus.platform && (
-                      <p className="text-[10px] capitalize" style={{ color: 'var(--ultra-text-secondary)' }}>
+                      <p className="text-[10px] capitalize text-white/50">
                         on {streamingStatus.platform}
                       </p>
                     )}
@@ -258,10 +268,10 @@ export default function EditProfilePage() {
                     toast.success('Checking streaming status...');
                   }}
                   disabled={isCheckingStream}
-                  className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  className="p-2 rounded-lg transition-all hover:bg-white/5 disabled:opacity-50"
                   title="Refresh streaming status"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isCheckingStream ? 'animate-spin' : ''}`} style={{ color: 'var(--ultra-text-muted)' }} />
+                  <RefreshCw className={`h-4 w-4 ${isCheckingStream ? 'animate-spin' : ''} text-white/50`} />
                 </button>
               </div>
             </div>
@@ -288,17 +298,17 @@ export default function EditProfilePage() {
         </div>
 
         {/* Save Button */}
-        <div className="px-4 mt-6">
+        <div className="px-4 mt-8">
           <button
             onClick={handleSave}
             disabled={isUpdating}
-            className="w-full py-3 text-white rounded-xl font-semibold text-sm disabled:opacity-50 transition-colors"
-            style={{ background: 'var(--ultra-primary)' }}
+            className="w-full py-3.5 rounded-2xl font-bold text-sm disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ background: '#00FFB2', color: '#05070b' }}
           >
             {isUpdating ? (
               <div className="flex items-center justify-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                <span>Saving...</span>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#05070b]/20 border-t-[#05070b]"></div>
+                <span>Saving Changes...</span>
               </div>
             ) : (
               'Save Changes'

@@ -194,7 +194,7 @@ export default function ChallengesPage() {
             </div>
             <p className="text-xs text-white/60">{challenges.length} showing</p>
           </div>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {(majorTab === 'challenges' ? challengeTabs : witnessingTabs).map((tab) => {
               const isActive = majorTab === 'challenges' ? challengeTab === tab.key : witnessingTab === tab.key;
               const onClick = () =>

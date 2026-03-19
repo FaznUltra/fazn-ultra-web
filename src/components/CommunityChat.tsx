@@ -83,15 +83,20 @@ export function CommunityChat({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border">
+    <div className="flex flex-col h-full rounded-3xl border border-white/5 bg-[#050b16]/80 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
       {/* Header */}
-      <div className="px-4 py-3 border-b bg-purple-50">
+      <div className="px-5 py-4 border-b border-white/5 bg-white/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-purple-600" />
-            <h3 className="font-semibold text-sm">Community Chat</h3>
+            <div className="w-8 h-8 rounded-2xl bg-[#2b1038] flex items-center justify-center">
+              <Users className="w-4 h-4 text-[#FF61D6]" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm tracking-wide text-white">Community Chat</h3>
+              <p className="text-[11px] text-white/60">Public hype room</p>
+            </div>
           </div>
-          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-semibold">
+          <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-[#2b1038] text-[#FF61D6] border border-[#ff61d6]/30">
             {spectatorCount} watching
           </span>
         </div>
@@ -100,21 +105,21 @@ export function CommunityChat({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 text-sm py-8">
+          <div className="text-center text-white/50 text-sm py-8">
             No messages yet. Be the first to chat!
           </div>
         ) : (
           messages.map((msg, idx) => (
             <div 
               key={idx} 
-              className="flex items-start justify-between gap-2 p-2 rounded hover:bg-gray-50"
+              className="flex items-start justify-between gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors"
             >
               <div className="flex-1 min-w-0">
                 <p className="text-xs">
-                  <span className="font-semibold text-gray-700">{msg.username}:</span>{' '}
-                  <span className="text-gray-600 break-words">{msg.message}</span>
+                  <span className="font-semibold text-white">{msg.username}:</span>{' '}
+                  <span className="text-white/70 break-words">{msg.message}</span>
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-[11px] text-white/40 mt-1">
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </p>
               </div>
@@ -122,9 +127,9 @@ export function CommunityChat({
               {canModerate && !msg.isDeleted && (
                 <button
                   onClick={() => deleteMessage(idx)}
-                  className="shrink-0 h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors flex items-center justify-center"
+                  className="shrink-0 h-7 w-7 p-0 text-[#FF6B6B] hover:text-white hover:bg-[#ff6b6b]/20 rounded-full transition-colors flex items-center justify-center"
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -134,26 +139,27 @@ export function CommunityChat({
       </div>
 
       {/* Message Input */}
-      <div className="px-4 py-3 border-t">
-        <div className="flex gap-2">
+      <div className="px-5 py-4 border-t border-white/5 bg-white/5">
+        <div className="flex gap-3">
           <input
             type="text"
             value={newMessage}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
             placeholder="Chat with spectators..."
             maxLength={500}
-            className="flex-1 h-10 rounded-lg border border-gray-300 px-3 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="flex-1 h-11 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-white/40 focus:border-[#FF61D6] focus:ring-2 focus:ring-[#FF61D6]/40 focus:outline-none"
             onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && sendMessage()}
           />
           <button
             onClick={sendMessage}
             disabled={loading || !newMessage.trim()}
-            className="px-4 h-10 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="px-5 h-11 rounded-2xl font-semibold bg-gradient-to-r from-[#FF61D6] to-[#FF8A5B] text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Send className="w-4 h-4" />
+            Send
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-white/40 mt-2">
           {newMessage.length}/500 characters
         </p>
       </div>

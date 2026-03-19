@@ -52,37 +52,37 @@ function VerifyResetOTPContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-[#03060b] px-4 py-12">
       <div className="w-full max-w-md">
         <button
           onClick={() => router.back()}
-          className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200"
+          className="mb-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-all hover:bg-white/10"
         >
-          <ArrowLeft className="h-5 w-5 text-gray-700" />
+          <ArrowLeft className="h-5 w-5 text-white/70" />
         </button>
 
         <div className="mb-10 text-center">
           <div className="mb-6 flex justify-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50">
-              <Key className="h-12 w-12 text-blue-600" />
+            <div className="flex h-24 w-24 items-center justify-center rounded-full" style={{ background: 'rgba(124,140,255,0.12)' }}>
+              <Key className="h-12 w-12 text-[#7C8CFF]" />
             </div>
           </div>
-          <h1 className="mb-3 text-3xl font-bold text-black">Enter Reset Code</h1>
-          <p className="text-gray-600 leading-relaxed">
+          <h1 className="mb-3 text-3xl font-bold text-white">Enter Reset Code</h1>
+          <p className="text-white/50 leading-relaxed">
             Enter the 6-digit code sent to
             <br />
-            <span className="font-semibold text-blue-600">{email}</span>
+            <span className="font-bold text-[#7C8CFF]">{email}</span>
           </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label htmlFor="otp" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="otp" className="mb-2 block text-sm font-semibold text-white/70">
               Reset Code
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <KeyRound className="h-5 w-5 text-gray-400" />
+                <KeyRound className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('otp')}
@@ -91,30 +91,31 @@ function VerifyResetOTPContent() {
                 inputMode="numeric"
                 maxLength={6}
                 placeholder="Enter 6-digit code"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#7C8CFF] focus:outline-none focus:ring-2 focus:ring-[#7C8CFF]/50 transition-all text-center tracking-widest"
               />
             </div>
             {errors.otp && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.otp.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.otp.message}</p>
             )}
           </div>
 
           <button
             type="submit"
             disabled={isVerifyOTPLoading}
-            className="h-14 w-full rounded-2xl bg-blue-600 text-base font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="h-14 w-full rounded-2xl text-base font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            style={{ background: '#7C8CFF', color: '#05070b' }}
           >
             {isVerifyOTPLoading ? 'Verifying...' : 'Verify Code'}
           </button>
 
           <div className="text-center">
-            <span className="text-sm text-gray-500">Didn&apos;t receive the code? </span>
+            <span className="text-sm text-white/50">Didn&apos;t receive the code? </span>
             <button
               type="button"
               onClick={handleResend}
               disabled={!canResend}
-              className={`text-sm font-semibold ${
-                canResend ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'
+              className={`text-sm font-bold transition-colors ${
+                canResend ? 'text-[#7C8CFF] hover:text-[#7C8CFF]/80' : 'text-white/30'
               }`}
             >
               {canResend ? 'Resend' : `Resend in ${countdown}s`}

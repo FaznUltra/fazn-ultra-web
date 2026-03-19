@@ -99,22 +99,22 @@ export function StreamingAccountCard({
 
   if (!isConnected) {
     return (
-      <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+      <div className="rounded-2xl border border-white/5 bg-white/[0.04] backdrop-blur-xl p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${config.color}15` }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${config.color}20` }}>
               <Icon className="h-5 w-5" style={{ color: config.color }} />
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--ultra-text)' }}>{config.name}</p>
-              <p className="text-[11px]" style={{ color: 'var(--ultra-text-muted)' }}>Not connected</p>
+              <p className="text-sm font-semibold text-white">{config.name}</p>
+              <p className="text-[11px] text-white/40">Not connected</p>
             </div>
           </div>
           <button 
             onClick={handleConnect}
             disabled={isConnecting}
-            className="px-3 py-1.5 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
-            style={{ background: 'var(--ultra-primary)' }}
+            className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            style={{ background: config.color, color: 'white' }}
           >
             {isConnecting ? 'Connecting...' : 'Connect'}
           </button>
@@ -125,49 +125,48 @@ export function StreamingAccountCard({
 
   // Connected - show full details
   return (
-    <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+    <div className="rounded-2xl border border-white/5 bg-white/[0.04] backdrop-blur-xl p-4">
       {/* Header with platform name and connected status */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${config.color}15` }}>
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${config.color}20` }}>
           <Icon className="h-4 w-4" style={{ color: config.color }} />
         </div>
         <div className="flex-1">
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm font-semibold" style={{ color: 'var(--ultra-text)' }}>{config.name}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-white">{config.name}</p>
             {liveStatus?.isLive && (
-              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ background: '#FEF2F2' }}>
-                <Radio className="h-2.5 w-2.5 animate-pulse" style={{ color: '#DC2626' }} />
-                <span className="text-[10px] font-bold" style={{ color: '#DC2626' }}>LIVE</span>
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,107,107,0.15)' }}>
+                <Radio className="h-2.5 w-2.5 animate-pulse text-[#FF6B6B]" />
+                <span className="text-[10px] font-bold text-[#FF6B6B]">LIVE</span>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-1">
-            <CheckCircle className="h-3 w-3" style={{ color: '#059669' }} />
-            <span className="text-[10px] font-medium" style={{ color: '#059669' }}>Connected</span>
+          <div className="flex items-center gap-1 mt-0.5">
+            <CheckCircle className="h-3 w-3 text-[#00FFB2]" />
+            <span className="text-[10px] font-semibold text-[#00FFB2]">Connected</span>
           </div>
         </div>
       </div>
 
       {/* Channel Details */}
-      <div className="flex items-center gap-2.5 mb-3">
+      <div className="flex items-center gap-3 mb-3">
         {profileImage && (
           <Image
             src={profileImage}
             alt={channelName || config.name}
-            width={40}
-            height={40}
-            className="rounded-xl"
+            width={44}
+            height={44}
+            className="rounded-xl border border-white/10"
           />
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold truncate" style={{ color: 'var(--ultra-text)' }}>{channelName}</p>
+          <p className="text-sm font-bold truncate text-white">{channelName}</p>
           {channelUrl && (
             <a 
               href={channelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] flex items-center gap-1 mt-0.5"
-              style={{ color: 'var(--ultra-primary)' }}
+              className="text-[11px] flex items-center gap-1 mt-1 text-white/60 hover:text-white/80 transition-colors"
             >
               View Channel
               <ExternalLink className="h-3 w-3" />
@@ -178,28 +177,28 @@ export function StreamingAccountCard({
 
       {/* Live Stream Info */}
       {liveStatus?.isLive && (
-        <div className="mb-3 p-2.5 rounded-xl" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
-          <div className="flex items-start gap-2.5">
+        <div className="mb-3 p-3 rounded-xl border" style={{ background: 'rgba(255,107,107,0.08)', borderColor: 'rgba(255,107,107,0.2)' }}>
+          <div className="flex items-start gap-3">
             {liveStatus.thumbnail && (
               <Image
                 src={liveStatus.thumbnail}
                 alt="Stream thumbnail"
-                width={72}
-                height={40}
-                className="rounded-lg object-cover"
+                width={80}
+                height={45}
+                className="rounded-lg object-cover border border-white/10"
               />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold line-clamp-2 mb-0.5" style={{ color: 'var(--ultra-text)' }}>
+              <p className="text-xs font-bold line-clamp-2 mb-1 text-white">
                 {liveStatus.title}
               </p>
               {liveStatus.viewerCount !== undefined && (
-                <p className="text-[10px] mb-0.5" style={{ color: 'var(--ultra-text-secondary)' }}>
+                <p className="text-[10px] mb-0.5 text-white/60">
                   {liveStatus.viewerCount.toLocaleString()} viewers
                 </p>
               )}
               {liveStatus.gameName && (
-                <p className="text-[10px] mb-1" style={{ color: 'var(--ultra-text-secondary)' }}>
+                <p className="text-[10px] mb-1.5 text-white/60">
                   {liveStatus.gameName}
                 </p>
               )}
@@ -207,8 +206,7 @@ export function StreamingAccountCard({
                 href={liveStatus.streamUrl!}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[10px] font-semibold"
-                style={{ color: '#DC2626' }}
+                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#FF6B6B] hover:text-[#FF6B6B]/80 transition-colors"
               >
                 Watch Stream
                 <ExternalLink className="h-2.5 w-2.5" />
@@ -220,11 +218,11 @@ export function StreamingAccountCard({
 
       {/* Stats */}
       {config.statValue !== undefined && (
-        <div className="flex items-center gap-2 rounded-xl px-3 py-2 mb-3" style={{ background: 'var(--ultra-bg)' }}>
-          <Users className="h-4 w-4" style={{ color: 'var(--ultra-text-muted)' }} />
+        <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 mb-3 border border-white/5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <Users className="h-4 w-4 text-white/40" />
           <div>
-            <p className="text-[10px] font-medium" style={{ color: 'var(--ultra-text-muted)' }}>{config.statLabel}</p>
-            <p className="text-sm font-bold" style={{ color: 'var(--ultra-text)' }}>
+            <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide">{config.statLabel}</p>
+            <p className="text-sm font-bold text-white">
               {config.statValue.toLocaleString()}
             </p>
           </div>
@@ -235,8 +233,8 @@ export function StreamingAccountCard({
       <button 
         onClick={handleDisconnect}
         disabled={disconnectMutation.isPending}
-        className="w-full px-3 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
-        style={{ background: '#FEF2F2', color: '#DC2626' }}
+        className="w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50 border border-[#FF6B6B]/20"
+        style={{ background: 'rgba(255,107,107,0.08)', color: '#FF6B6B' }}
       >
         {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect Account'}
       </button>

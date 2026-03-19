@@ -47,62 +47,72 @@ export default function SupportTicketPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
+      <div className="min-h-screen bg-[#03060b] flex items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-white/10 border-t-[#00FFB2]" />
       </div>
     );
   }
 
   if (!ticket) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm" style={{ color: 'var(--ultra-text-muted)' }}>Ticket not found</p>
+      <div className="min-h-screen bg-[#03060b] flex items-center justify-center">
+        <p className="text-sm text-white/40">Ticket not found</p>
       </div>
     );
   }
 
+  const getStatusColor = () => {
+    switch (ticket.status) {
+      case 'open': return '#FF9F43';
+      case 'in_progress': return '#7C8CFF';
+      case 'resolved': return '#00FFB2';
+      case 'closed': return 'rgba(255,255,255,0.4)';
+      default: return 'rgba(255,255,255,0.4)';
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-[#03060b]">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
-        <div className="flex items-center justify-between h-12 px-4">
-          <button onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" style={{ color: 'var(--ultra-text)' }} />
+      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/5" style={{ background: 'rgba(3,6,11,0.95)' }}>
+        <div className="flex items-center justify-between h-14 px-4">
+          <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+            <ArrowLeft className="h-5 w-5 text-white/70" />
           </button>
           <div className="flex-1 text-center mx-3">
-            <h1 className="text-sm font-bold truncate" style={{ color: 'var(--ultra-text)' }}>{ticket.subject}</h1>
-            <p className="text-[10px] uppercase" style={{ color: 'var(--ultra-text-muted)' }}>{ticket.status.replace('_', ' ')}</p>
+            <h1 className="text-sm font-bold truncate text-white">{ticket.subject}</h1>
+            <p className="text-[10px] uppercase font-bold tracking-wide" style={{ color: getStatusColor() }}>{ticket.status.replace('_', ' ')}</p>
           </div>
           {ticket.status !== 'closed' && (
             <button
               onClick={handleCloseTicket}
               disabled={isClosing}
-              className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-white/5 transition-colors"
             >
-              <X className="h-4 w-4" style={{ color: '#DC2626' }} />
+              <X className="h-4 w-4 text-[#FF6B6B]" />
             </button>
           )}
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ background: 'var(--ultra-bg)' }}>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {ticket.messages.map((msg, index) => (
           <div
             key={index}
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className="max-w-[80%] rounded-2xl px-4 py-2.5"
+              className="max-w-[80%] rounded-2xl px-4 py-3"
               style={msg.sender === 'user'
-                ? { background: 'var(--ultra-primary)', color: 'white' }
-                : { background: 'white', color: 'var(--ultra-text)', boxShadow: 'var(--ultra-card-shadow)' }
+                ? { background: '#00FFB2', color: '#05070b' }
+                : { background: 'rgba(255,255,255,0.06)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }
               }
             >
               <p className="text-sm leading-relaxed">{msg.message}</p>
               <p
-                className="text-[10px] mt-1"
-                style={{ color: msg.sender === 'user' ? 'rgba(255,255,255,0.6)' : 'var(--ultra-text-muted)' }}
+                className="text-[10px] mt-1.5 font-medium"
+                style={{ color: msg.sender === 'user' ? 'rgba(5,7,11,0.5)' : 'rgba(255,255,255,0.4)' }}
               >
                 {formatTime(msg.createdAt)}
               </p>
@@ -114,9 +124,9 @@ export default function SupportTicketPage() {
 
       {/* Input */}
       {ticket.status !== 'closed' && (
-        <div className="bg-white p-3" style={{ borderTop: '1px solid var(--ultra-border)' }}>
+        <div className="p-4 border-t border-white/5" style={{ background: 'rgba(3,6,11,0.95)' }}>
           <div className="flex items-end gap-2">
-            <div className="flex-1 rounded-xl px-3 py-2.5" style={{ background: 'var(--ultra-bg)', border: '1px solid var(--ultra-border)' }}>
+            <div className="flex-1 rounded-xl px-4 py-3 bg-white/5 border border-white/10 focus-within:ring-2 focus-within:ring-[#00FFB2]/50 focus-within:border-[#00FFB2]/50 transition-all">
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -128,18 +138,17 @@ export default function SupportTicketPage() {
                 }}
                 placeholder="Type your message..."
                 rows={1}
-                className="w-full bg-transparent text-sm placeholder-gray-400 focus:outline-none resize-none"
-                style={{ color: 'var(--ultra-text)' }}
+                className="w-full bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none resize-none"
               />
             </div>
             <button
               onClick={handleSendMessage}
               disabled={!message.trim() || isSendingMessage}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-white disabled:opacity-50 transition-colors flex-shrink-0"
-              style={{ background: 'var(--ultra-primary)' }}
+              className="flex h-11 w-11 items-center justify-center rounded-xl disabled:opacity-50 transition-all hover:scale-[1.05] active:scale-[0.95] flex-shrink-0"
+              style={{ background: '#00FFB2', color: '#05070b' }}
             >
               {isSendingMessage ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#05070b]/20 border-t-[#05070b]"></div>
               ) : (
                 <Send className="h-4 w-4" />
               )}

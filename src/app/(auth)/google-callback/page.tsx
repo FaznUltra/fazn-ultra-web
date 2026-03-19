@@ -78,10 +78,10 @@ function GoogleCallbackContent() {
   }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
+    <div className="flex min-h-screen items-center justify-center bg-[#03060b]">
       <div className="text-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-        <p className="text-gray-600">Completing sign-in...</p>
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#00FFB2] border-t-transparent mx-auto mb-4"></div>
+        <p className="text-white/60 font-medium">Completing sign-in...</p>
       </div>
     </div>
   );
@@ -90,10 +90,10 @@ function GoogleCallbackContent() {
 export default function GoogleCallbackPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#03060b]">
         <div className="text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#00FFB2] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-white/60 font-medium">Loading...</p>
         </div>
       </div>
     }>

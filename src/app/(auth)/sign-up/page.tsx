@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { registerSchema, type RegisterFormData } from '@/validations/auth.schema';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Mail, Lock, User, AtSign } from 'lucide-react';
 
 export default function SignUpPage() {
@@ -32,147 +31,145 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-[#03060b] px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-         <div className=" flex justify-center">
-                     <Image
-                       src="/images/fazn-light.png"
-                       alt="Ultra Logo"
-                       width={300}
-                       height={300}
-                       priority
-                     />
+         <div className="flex justify-center mb-6">
+                     <span className="font-display tracking-[0.4em] text-4xl text-white">
+                       FAZN
+                       <span className="text-[#00FFB2]">.</span>
+                     </span>
                    </div>
-          <h1 className="mb-2 text-3xl font-bold text-black">Create Account</h1>
-          <p className="text-gray-500">Join Ultra today</p>
+          <h1 className="mb-3 text-3xl font-bold text-white">Create Account</h1>
+          <p className="text-white/50">Join the ultimate gaming arena</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label htmlFor="firstName" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="firstName" className="mb-2 block text-sm font-semibold text-white/70">
               First Name
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('firstName')}
                 id="firstName"
                 type="text"
                 placeholder="Enter your first name"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all"
               />
             </div>
             {errors.firstName && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.firstName.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.firstName.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="lastName" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="lastName" className="mb-2 block text-sm font-semibold text-white/70">
               Last Name
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('lastName')}
                 id="lastName"
                 type="text"
                 placeholder="Enter your last name"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all"
               />
             </div>
             {errors.lastName && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.lastName.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.lastName.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="displayName" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="displayName" className="mb-2 block text-sm font-semibold text-white/70">
               Display Name
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <AtSign className="h-5 w-5 text-gray-400" />
+                <AtSign className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('displayName')}
                 id="displayName"
                 type="text"
                 placeholder="@username"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all"
               />
             </div>
             {errors.displayName && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.displayName.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.displayName.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="email" className="mb-2 block text-sm font-semibold text-white/70">
               Email
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('email')}
                 id="email"
                 type="email"
                 placeholder="Enter your email"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all"
               />
             </div>
             {errors.email && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.email.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.email.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="password" className="mb-2 block text-sm font-semibold text-white/70">
               Password
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('password')}
                 id="password"
                 type="password"
                 placeholder="Enter your password"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all"
               />
             </div>
             {errors.password && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.password.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.password.message}</p>
             )}
           </div>
 
           <button
             type="submit"
             disabled={isRegisterLoading}
-            className="w-full py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-4 rounded-2xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.02] active:scale-[0.98] mt-6"
+            style={{ background: '#00FFB2', color: '#05070b' }}
           >
             {isRegisterLoading ? 'Creating account...' : 'Sign Up'}
           </button>
 
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="text-sm text-gray-500 font-medium">OR</span>
-            <div className="flex-1 h-px bg-gray-200"></div>
+            <div className="flex-1 h-px bg-white/10"></div>
+            <span className="text-sm text-white/40 font-semibold">OR</span>
+            <div className="flex-1 h-px bg-white/10"></div>
           </div>
 
           <GoogleSignInButton mode="signup" />
 
-          <div className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/sign-in" className="text-blue-600 hover:text-blue-700 font-semibold">
+          <div className="text-center text-sm">
+            <span className="text-white/50">Already have an account? </span>
+            <Link href="/sign-in" className="text-[#00FFB2] hover:text-[#00FFB2]/80 font-bold transition-colors">
               Sign In
             </Link>
           </div>

@@ -50,11 +50,11 @@ function ResetPasswordContent() {
 
   const getPasswordStrengthColor = (password: string): string => {
     const strength = getPasswordStrength(password);
-    if (strength === 1) return 'bg-red-500';
-    if (strength === 2) return 'bg-orange-500';
-    if (strength === 3) return 'bg-green-500';
-    if (strength === 4) return 'bg-green-500';
-    return 'bg-gray-200';
+    if (strength === 1) return 'bg-[#FF6B6B]';
+    if (strength === 2) return 'bg-[#FF9F43]';
+    if (strength === 3) return 'bg-[#FBCB4A]';
+    if (strength === 4) return 'bg-[#00FFB2]';
+    return 'bg-white/10';
   };
 
   const onSubmit = async (data: ResetPasswordFormData) => {
@@ -68,12 +68,13 @@ function ResetPasswordContent() {
 
   if (!email || !otp) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white px-4">
+      <div className="flex min-h-screen items-center justify-center bg-[#03060b] px-4">
         <div className="text-center">
-          <p className="mb-4 text-lg font-medium text-red-500">Invalid reset link</p>
+          <p className="mb-4 text-lg font-bold text-[#FF6B6B]">Invalid reset link</p>
           <button
             onClick={() => router.push('/forgot-password')}
-            className="h-12 rounded-2xl bg-blue-600 px-6 text-base font-semibold text-white transition-colors hover:bg-blue-700"
+            className="h-12 rounded-2xl px-6 text-base font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ background: '#00FFB2', color: '#05070b' }}
           >
             Go to Forgot Password
           </button>
@@ -83,92 +84,92 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-[#03060b] px-4 py-12">
       <div className="w-full max-w-md">
         <button
           onClick={() => router.back()}
-          className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200"
+          className="mb-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/10 transition-all hover:bg-white/10"
         >
-          <ArrowLeft className="h-5 w-5 text-gray-700" />
+          <ArrowLeft className="h-5 w-5 text-white/70" />
         </button>
 
         <div className="mb-10 text-center">
           <div className="mb-6 flex justify-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50">
-              <Lock className="h-12 w-12 text-blue-600" />
+            <div className="flex h-24 w-24 items-center justify-center rounded-full" style={{ background: 'rgba(0,255,178,0.12)' }}>
+              <Lock className="h-12 w-12 text-[#00FFB2]" />
             </div>
           </div>
-          <h1 className="mb-3 text-3xl font-bold text-black">Create New Password</h1>
-          <p className="text-gray-600 leading-relaxed">Choose a strong password for your account</p>
+          <h1 className="mb-3 text-3xl font-bold text-white">Create New Password</h1>
+          <p className="text-white/50 leading-relaxed">Choose a strong password for your account</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label htmlFor="newPassword" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="newPassword" className="mb-2 block text-sm font-semibold text-white/70">
               New Password
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('newPassword')}
                 id="newPassword"
                 type="password"
                 placeholder="Enter new password"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all"
               />
             </div>
             {newPassword && (
               <div className="mt-3">
-                <div className="mb-1.5 flex gap-1">
+                <div className="mb-2 flex gap-1.5">
                   {[1, 2, 3, 4].map((level) => (
                     <div
                       key={level}
-                      className={`h-1 flex-1 rounded-full transition-colors ${
+                      className={`h-1.5 flex-1 rounded-full transition-colors ${
                         getPasswordStrength(newPassword) >= level
                           ? getPasswordStrengthColor(newPassword)
-                          : 'bg-gray-200'
+                          : 'bg-white/10'
                       }`}
                     />
                   ))}
                 </div>
-                <p className="text-xs font-medium text-gray-600">
+                <p className="text-xs font-bold text-white/60">
                   {getPasswordStrengthText(newPassword)}
                 </p>
               </div>
             )}
             {errors.newPassword && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.newPassword.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.newPassword.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="confirmPassword" className="mb-2 block text-sm font-semibold text-white/70">
               Confirm Password
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('confirmPassword')}
                 id="confirmPassword"
                 type="password"
                 placeholder="Confirm new password"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all"
               />
             </div>
             {errors.confirmPassword && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">
                 {errors.confirmPassword.message}
               </p>
             )}
           </div>
 
-          <div className="rounded-2xl bg-blue-50 p-4">
-            <p className="mb-2 text-sm font-semibold text-black">Password must contain:</p>
-            <ul className="space-y-1 text-sm text-gray-600">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="mb-2 text-sm font-bold text-white">Password must contain:</p>
+            <ul className="space-y-1 text-sm text-white/60">
               <li>• At least 8 characters</li>
               <li>• One uppercase letter</li>
               <li>• One lowercase letter</li>
@@ -179,7 +180,8 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={isResetPasswordLoading}
-            className="h-14 w-full rounded-2xl bg-blue-600 text-base font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="h-14 w-full rounded-2xl text-base font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            style={{ background: '#00FFB2', color: '#05070b' }}
           >
             {isResetPasswordLoading ? 'Resetting...' : 'Reset Password'}
           </button>

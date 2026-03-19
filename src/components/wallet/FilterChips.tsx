@@ -12,20 +12,24 @@ export function FilterChips({ filters, selectedFilter, onFilterChange }: FilterC
   };
 
   return (
-    <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
-      {filters.map((filter) => (
-        <button
-          key={filter}
-          onClick={() => onFilterChange(filter)}
-          className="px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all"
-          style={{
-            background: selectedFilter === filter ? 'var(--ultra-primary)' : 'var(--ultra-primary-light)',
-            color: selectedFilter === filter ? 'white' : 'var(--ultra-primary)',
-          }}
-        >
-          {getFilterLabel(filter)}
-        </button>
-      ))}
+    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      {filters.map((filter) => {
+        const isSelected = selectedFilter === filter;
+        return (
+          <button
+            key={filter}
+            onClick={() => onFilterChange(filter)}
+            className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border"
+            style={{
+              background: isSelected ? '#7C8CFF' : 'rgba(124,140,255,0.08)',
+              color: isSelected ? '#05070b' : '#7C8CFF',
+              borderColor: isSelected ? '#7C8CFF' : 'rgba(124,140,255,0.2)',
+            }}
+          >
+            {getFilterLabel(filter)}
+          </button>
+        );
+      })}
     </div>
   );
 }

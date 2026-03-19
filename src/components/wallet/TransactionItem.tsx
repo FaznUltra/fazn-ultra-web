@@ -11,46 +11,46 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
   const getIcon = () => {
     switch (transaction.type) {
       case 'DEPOSIT':
-        return <ArrowDownLeft className="h-5 w-5 text-green-600" />;
+        return <ArrowDownLeft className="h-4 w-4 text-[#00FFB2]" />;
       case 'WITHDRAWAL':
-        return <ArrowUpRight className="h-5 w-5 text-red-600" />;
+        return <ArrowUpRight className="h-4 w-4 text-[#FF6B6B]" />;
       case 'STAKE_DEBIT':
-        return <Minus className="h-5 w-5 text-orange-600" />;
+        return <Minus className="h-4 w-4 text-[#FF9F43]" />;
       case 'WINNING_CREDIT':
-        return <Trophy className="h-5 w-5 text-yellow-600" />;
+        return <Trophy className="h-4 w-4 text-[#FBCB4A]" />;
       case 'STAKE_REFUND':
-        return <Plus className="h-5 w-5 text-blue-600" />;
+        return <Plus className="h-4 w-4 text-[#7C8CFF]" />;
       case 'WITNESS_REWARD':
-        return <Shield className="h-5 w-5 text-purple-600" />;
+        return <Shield className="h-4 w-4 text-[#FF61D6]" />;
       default:
-        return <Minus className="h-5 w-5 text-gray-600" />;
+        return <Minus className="h-4 w-4 text-white/40" />;
     }
   };
 
   const getIconBg = () => {
     switch (transaction.type) {
       case 'DEPOSIT':
-        return 'bg-green-50';
+        return 'rgba(0,255,178,0.12)';
       case 'WITHDRAWAL':
-        return 'bg-red-50';
+        return 'rgba(255,107,107,0.12)';
       case 'STAKE_DEBIT':
-        return 'bg-orange-50';
+        return 'rgba(255,159,67,0.12)';
       case 'WINNING_CREDIT':
-        return 'bg-yellow-50';
+        return 'rgba(251,203,74,0.12)';
       case 'STAKE_REFUND':
-        return 'bg-blue-50';
+        return 'rgba(124,140,255,0.12)';
       case 'WITNESS_REWARD':
-        return 'bg-purple-50';
+        return 'rgba(255,97,214,0.12)';
       default:
-        return 'bg-gray-50';
+        return 'rgba(255,255,255,0.05)';
     }
   };
 
   const getAmountColor = () => {
     if (transaction.type === 'DEPOSIT' || transaction.type === 'WINNING_CREDIT' || transaction.type === 'STAKE_REFUND' || transaction.type === 'WITNESS_REWARD') {
-      return 'text-green-600';
+      return 'text-[#00FFB2]';
     }
-    return 'text-red-600';
+    return 'text-[#FF6B6B]';
   };
 
   const getAmountPrefix = () => {
@@ -71,27 +71,32 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+    <div className="rounded-2xl border border-white/5 bg-white/[0.04] backdrop-blur-xl p-3.5">
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl ${getIconBg()} flex items-center justify-center flex-shrink-0`}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: getIconBg() }}>
           {getIcon()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate" style={{ color: 'var(--ultra-text)' }}>{transaction.description}</p>
-          <p className="text-[11px]" style={{ color: 'var(--ultra-text-muted)' }}>
+          <p className="text-xs font-semibold truncate text-white leading-tight">{transaction.description}</p>
+          <p className="text-[10px] text-white/40 mt-0.5">
             {formatDate(transaction.createdAt)} · {formatTime(transaction.createdAt)}
           </p>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className={`text-sm font-bold ${getAmountColor()}`}>
+          <p className={`text-xs font-bold ${getAmountColor()} leading-tight mb-1`}>
             {getAmountPrefix()}₦{transaction.amount.toLocaleString()}
           </p>
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-            transaction.status === 'COMPLETED' ? 'bg-green-50 text-green-700' :
-            transaction.status === 'PENDING' ? 'bg-yellow-50 text-yellow-700' :
-            transaction.status === 'FAILED' ? 'bg-red-50 text-red-700' :
-            'bg-gray-50 text-gray-700'
-          }`}>
+          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-lg ${
+            transaction.status === 'COMPLETED' ? 'text-[#00FFB2]' :
+            transaction.status === 'PENDING' ? 'text-[#FBCB4A]' :
+            transaction.status === 'FAILED' ? 'text-[#FF6B6B]' :
+            'text-white/40'
+          }`} style={{
+            background: transaction.status === 'COMPLETED' ? 'rgba(0,255,178,0.12)' :
+            transaction.status === 'PENDING' ? 'rgba(251,203,74,0.12)' :
+            transaction.status === 'FAILED' ? 'rgba(255,107,107,0.12)' :
+            'rgba(255,255,255,0.05)'
+          }}>
             {transaction.status}
           </span>
         </div>

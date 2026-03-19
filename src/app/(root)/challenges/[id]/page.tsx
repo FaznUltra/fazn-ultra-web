@@ -28,18 +28,23 @@ import { challengeService } from '@/services/challenge.service';
 import { StreamPlayer } from '@/components/challenges/StreamPlayer';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Challenge, StreamingPlatform } from '@/types/challenge';
+import { Challenge, ChallengeStatus, StreamingPlatform } from '@/types/challenge';
 import { userService } from '@/services/user.service';
-import { StreamingStatus } from '@/components/StreamingStatus';
 import { PrivateChatRoom } from '@/components/PrivateChatRoom';
 import { CommunityChat } from '@/components/CommunityChat';
-import { VODEvidence } from '@/components/VODEvidence';
 import { PhoneVerification } from '@/components/PhoneVerification';
 import { spectatingService } from '@/services/spectating.service';
 
 interface ChallengeDetailPageProps {
   params: Promise<{ id: string }>;
 }
+
+type ChallengeWithSpectating = Challenge & {
+  spectating?: {
+    spectatorCount?: number;
+    lastJoinedAt?: string;
+  };
+};
 
 export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps) {
   const resolvedParams = use(params);
@@ -60,7 +65,6 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
   
   const [streamingPlatform, setStreamingPlatform] = useState<StreamingPlatform | null>(null);
   const [streamingUrl, setStreamingUrl] = useState('');
-  const [updateStreamingFor, setUpdateStreamingFor] = useState<'creator' | 'acceptor' | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [cancelReason, setCancelReason] = useState('');
   const [roomCode, setRoomCode] = useState('');
@@ -89,43 +93,83 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
     queryKey: ['streaming-status', resolvedParams.id],
     queryFn: () => challengeService.getStreamingStatus(resolvedParams.id),
     enabled: !!resolvedParams.id && !!data?.data?.challenge,
-    refetchInterval: 10000, // Refetch every 10 seconds for real-time status
+    refetchInterval: 10000,
   });
 
-  const challenge = data?.data?.challenge;
+  const challenge = data?.data?.challenge as ChallengeWithSpectating | undefined;
   const currentUserProfile = userProfileData?.data?.user;
   const streamingStatus = streamingStatusData?.data;
+
+  const formatCurrency = (value?: number | null) =>
+    typeof value === 'number'
+      ? new Intl.NumberFormat('en-NG', {
+          style: 'currency',
+          currency: 'NGN',
+          maximumFractionDigits: 0,
+        }).format(value)
+      : '—';
+
+  const formatDate = (value?: string | null) =>
+    value ? new Date(value).toLocaleString() : '—';
+
+  const heroStats = [
+    {
+      label: 'Entry Stake',
+      value: formatCurrency(challenge?.stakeAmount),
+      hint: 'Per player',
+      accent: 'from-[#00FFB2]/20 to-transparent',
+      color: '#00FFB2',
+    },
+    {
+      label: 'Total Pot',
+      value: formatCurrency(challenge?.totalPot),
+      hint: challenge?.acceptor ? 'Winner takes all' : 'Open challenge',
+      accent: 'from-[#FBCB4A]/20 to-transparent',
+      color: '#FBCB4A',
+    },
+    {
+      label: 'Match Start',
+      value: formatDate(challenge?.matchStartTime),
+      hint: 'Local timezone',
+      accent: 'from-[#7C8CFF]/20 to-transparent',
+      color: '#7C8CFF',
+    },
+    {
+      label: 'Dispute Deadline',
+      value: formatDate(challenge?.disputeDeadline),
+      hint: challenge?.disputeDeadline ? 'Auto-settle after window' : 'Pending scores',
+      accent: 'from-[#FF61D6]/20 to-transparent',
+      color: '#FF61D6',
+    },
+  ];
+
+  const acceptanceDeadlineRaw = (challenge as any)?.acceptanceDueDate || (challenge as any)?.acceptDeadline;
+  const timeline = [
+    { label: 'Challenge Created', value: formatDate(challenge?.createdAt) },
+    { label: 'Acceptance Deadline', value: formatDate(acceptanceDeadlineRaw) },
+    { label: 'Match Start', value: formatDate(challenge?.matchStartTime) },
+    { label: 'Dispute Deadline', value: formatDate(challenge?.disputeDeadline) },
+  ];
+
+  const spectatorCount = challenge?.spectating?.spectatorCount ?? 0;
 
   // Dispute countdown timer
   useEffect(() => {
     if (!challenge?.disputeDeadline) return;
-
     const updateCountdown = () => {
       const now = new Date().getTime();
       const deadline = new Date(challenge.disputeDeadline!).getTime();
       const timeLeft = deadline - now;
-
-      if (timeLeft <= 0) {
-        setDisputeTimeRemaining('Expired');
-        return;
-      }
-
+      if (timeLeft <= 0) { setDisputeTimeRemaining('Expired'); return; }
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-      if (hours > 0) {
-        setDisputeTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
-      } else if (minutes > 0) {
-        setDisputeTimeRemaining(`${minutes}m ${seconds}s`);
-      } else {
-        setDisputeTimeRemaining(`${seconds}s`);
-      }
+      if (hours > 0) setDisputeTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+      else if (minutes > 0) setDisputeTimeRemaining(`${minutes}m ${seconds}s`);
+      else setDisputeTimeRemaining(`${seconds}s`);
     };
-
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
-
     return () => clearInterval(interval);
   }, [challenge?.disputeDeadline]);
 
@@ -139,9 +183,7 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
       setShowAcceptModal(false);
       refetch();
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to accept challenge');
-    },
+    onError: (error: any) => toast.error(error.response?.data?.message || 'Failed to accept challenge'),
   });
 
   const rejectMutation = useMutation({
@@ -190,9 +232,7 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
     onError: (error: any) => {
       const errorMessage = error.response?.data?.message || 'Failed to volunteer as witness';
       toast.error(errorMessage);
-      if (errorMessage.includes('phone number')) {
-        setShowPhoneVerificationModal(true);
-      }
+      if (errorMessage.includes('phone number')) setShowPhoneVerificationModal(true);
     },
   });
 
@@ -292,35 +332,40 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
     onError: (error: any) => toast.error(error.response?.data?.message || 'Failed to settle challenge'),
   });
 
+  // ─── Loading ───────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-[#03060b] flex items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-white/10" style={{ borderTopColor: '#00FFB2' }} />
       </div>
     );
   }
 
   if (!challenge) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <AlertCircle className="h-16 w-16 text-red-600 mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Challenge Not Found</h2>
-        <p className="text-gray-600 mb-6">This challenge may have been deleted or doesn't exist.</p>
-        <button
-          onClick={() => router.back()}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-        >
-          Go Back
-        </button>
+      <div className="min-h-screen bg-[#03060b] flex flex-col items-center justify-center p-4 text-white">
+        <div className="rounded-3xl border border-white/5 bg-white/[0.04] p-10 flex flex-col items-center text-center max-w-sm">
+          <AlertCircle className="h-12 w-12 mb-4" style={{ color: '#FF6B6B' }} />
+          <h2 className="text-xl font-bold mb-2">Challenge Not Found</h2>
+          <p className="text-white/60 text-sm mb-6">This challenge may have been deleted or doesn't exist.</p>
+          <button
+            onClick={() => router.back()}
+            className="px-6 py-2.5 rounded-full text-sm font-semibold"
+            style={{ background: '#00FFB2', color: '#05070b' }}
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
+  // ─── Derived roles ─────────────────────────────────────────────────────────
   const isCreator = challenge.creator._id === user?._id;
   const isAcceptor = challenge.acceptor?._id === user?._id;
   const isWitness = challenge.witness?._id === user?._id;
   const isParticipant = isCreator || isAcceptor;
-  
+
   const canAccept = !isCreator && (challenge.status === 'OPEN' || (challenge.status === 'PENDING_ACCEPTANCE' && isAcceptor));
   const hasStreamingAccount = currentUserProfile?.streamingAccounts?.youtube?.verified || currentUserProfile?.streamingAccounts?.twitch?.verified;
   const canReject = challenge.status === 'PENDING_ACCEPTANCE' && challenge.challengeType === 'DIRECT' && isAcceptor;
@@ -333,512 +378,256 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
   const canSettle = challenge.status === 'COMPLETED' && isWitness && !challenge.isDisputed && !challenge.isFlagged && challenge.disputeDeadline && new Date(challenge.disputeDeadline) <= new Date();
   const showRoomCode = challenge.status === 'ACCEPTED' && challenge.witness && !challenge.matchStartedAt;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'OPEN':
-      case 'PENDING_ACCEPTANCE':
-        return 'bg-green-100 text-green-700';
-      case 'ACCEPTED':
-      case 'LIVE':
-        return 'bg-blue-100 text-blue-700';
-      case 'COMPLETED':
-        return 'bg-purple-100 text-purple-700';
-      case 'SETTLED':
-        return 'bg-green-100 text-green-700';
-      case 'REJECTED':
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
+  // ─── Status theme ──────────────────────────────────────────────────────────
+  const statusTokens: Record<string, { label: string; color: string; bg: string }> = {
+    OPEN:               { label: 'Open',               color: '#00FFB2', bg: 'rgba(0,255,178,0.12)' },
+    PENDING_ACCEPTANCE: { label: 'Pending Acceptance',  color: '#FBCB4A', bg: 'rgba(251,203,74,0.12)' },
+    ACCEPTED:           { label: 'Accepted',            color: '#7C8CFF', bg: 'rgba(124,140,255,0.12)' },
+    LIVE:               { label: 'Live',                color: '#FF6B6B', bg: 'rgba(255,107,107,0.12)' },
+    IN_PROGRESS:        { label: 'In Progress',         color: '#7C8CFF', bg: 'rgba(124,140,255,0.12)' },
+    COMPLETED:          { label: 'Completed',           color: '#FF61D6', bg: 'rgba(255,97,214,0.12)' },
+    SETTLED:            { label: 'Settled',             color: '#00FFB2', bg: 'rgba(0,255,178,0.12)' },
+    REJECTED:           { label: 'Rejected',            color: '#F87171', bg: 'rgba(248,113,113,0.12)' },
+    CANCELLED:          { label: 'Cancelled',           color: '#F87171', bg: 'rgba(248,113,113,0.12)' },
+    DISPUTED:           { label: 'Disputed',            color: '#FF9F43', bg: 'rgba(255,159,67,0.12)' },
+    FLAGGED:            { label: 'Flagged',             color: '#FF9F43', bg: 'rgba(255,159,67,0.12)' },
   };
+  const statusTheme = statusTokens[challenge.status] || { label: challenge.status, color: '#ffffff', bg: 'rgba(255,255,255,0.08)' };
+
+  // ─── Shared panel style ────────────────────────────────────────────────────
+  const panel = 'rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl';
+  const modalOverlay = 'fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50';
+  const modalBox = 'rounded-2xl border border-white/[0.08] bg-[#0d1117] text-white p-6 max-w-md w-full shadow-2xl';
+  const inputClass = 'w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.05] text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/40 focus:border-[#00FFB2]/40 transition-colors';
+  const textareaClass = `${inputClass} resize-none`;
+  const btnPrimary = 'flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98]';
+  const btnGhost = 'flex-1 py-2.5 rounded-xl font-semibold text-sm border border-white/10 text-white/70 hover:bg-white/[0.05] transition-all';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-4 h-14 px-4">
-          <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full">
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+    <div className="min-h-screen bg-[#03060b] text-white pb-24">
+      {/* ── Back nav ── */}
+      <div className="sticky top-0 z-40 border-b border-white/[0.05] bg-[#03060b]/80 backdrop-blur-lg">
+        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-xl hover:bg-white/[0.06] transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 text-white/70" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Challenge Details</h1>
+          <span className="text-sm font-semibold text-white/80">Challenge Detail</span>
+          <div className="ml-auto">
+            <span
+              className="px-3 py-1 rounded-full text-xs font-bold tracking-wide"
+              style={{ color: statusTheme.color, background: statusTheme.bg }}
+            >
+              {statusTheme.label}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 max-w-4xl mx-auto">
-        {/* Status Badge */}
-        <div className="flex items-center justify-between gap-2">
-          <span className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap ${getStatusColor(challenge.status)}`}>
-            {challenge.status.replace(/_/g, ' ')}
-          </span>
-          {challenge.status === 'LIVE' && (
-            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-red-100 rounded-full">
-              <Radio className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600 animate-pulse" />
-              <span className="text-xs sm:text-sm font-bold text-red-600">LIVE NOW</span>
-            </div>
-          )}
-        </div>
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
 
-        {/* Game Info */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-          <div className="flex items-center gap-2.5 sm:gap-3 mb-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
-                {challenge.gameName.replace(/_/g, ' ')}
-              </h2>
-              <p className="text-xs sm:text-sm text-gray-600">{challenge.platform}</p>
-            </div>
-          </div>
-
-          {/* Players */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-3 sm:py-4 border-t border-gray-100">
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-base sm:text-lg font-bold text-blue-600">
-                  {challenge.creator.displayName.charAt(0).toUpperCase()}
-                </span>
+        {/* ── Hero card ── */}
+        <div className={`${panel} overflow-hidden`}>
+          {/* gradient top stripe */}
+          <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${statusTheme.color}80, transparent)` }} />
+          <div className="p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-white/40 mb-1">{challenge.gameType || 'Gaming Challenge'}</p>
+                <h1 className="text-xl sm:text-2xl font-bold leading-tight">{challenge.gameName.replace(/_/g, ' ')}</h1>
+                <p className="text-xs text-white/40 mt-1">{challenge.platform} • {challenge.challengeType}</p>
               </div>
-              <div className="min-w-0">
-                <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">{challenge.creator.displayName}</p>
-                <p className="text-xs text-gray-500">Creator</p>
-              </div>
-            </div>
-
-            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 rounded-lg self-center flex-shrink-0">
-              <span className="text-xs sm:text-sm font-bold text-gray-700">VS</span>
-            </div>
-
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-              {challenge.acceptor ? (
-                <>
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-base sm:text-lg font-bold text-red-600">
-                      {challenge.acceptor.displayName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">{challenge.acceptor.displayName}</p>
-                    <p className="text-xs text-gray-500">Acceptor</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm sm:text-base font-semibold text-gray-500">Open</p>
-                    <p className="text-xs text-gray-400">Waiting</p>
-                  </div>
-                </>
+              {challenge.status === 'LIVE' && (
+                <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,107,107,0.15)' }}>
+                  <div className="w-1.5 h-1.5 bg-[#FF6B6B] rounded-full animate-pulse" />
+                  <span className="text-[11px] font-bold text-[#FF6B6B]">LIVE</span>
+                </div>
               )}
             </div>
-          </div>
 
-          {/* Stakes & Pot */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
-            <div className="bg-green-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
-              <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
-                <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
-                <span className="text-xs font-medium text-green-700">Stake</span>
-              </div>
-              <p className="text-lg sm:text-2xl font-bold text-green-900">
-                ₦{challenge.stakeAmount.toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
-              <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
-                <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-600" />
-                <span className="text-xs font-medium text-yellow-700">Total Pot</span>
-              </div>
-              <p className="text-lg sm:text-2xl font-bold text-yellow-900">
-                ₦{challenge.totalPot.toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {/* Match Time */}
-          <div className="mt-3 sm:mt-4 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
-            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-            <span className="truncate">Match starts: {new Date(challenge.matchStartTime).toLocaleString()}</span>
-          </div>
-
-          {/* Witness */}
-          {challenge.witness && (
-            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 flex-shrink-0" />
+            {/* Players row */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#00FFB2]/30 to-[#7C8CFF]/30 flex items-center justify-center flex-shrink-0">
+                  <User className="h-4 w-4 text-[#00FFB2]" />
+                </div>
                 <div className="min-w-0">
-                  <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">Witness: {challenge.witness.displayName}</p>
-                  {challenge.witness.witnessReputation && (
-                    <p className="text-xs text-gray-600">Reputation: {challenge.witness.witnessReputation}%</p>
-                  )}
+                  <p className="text-xs text-white/40">Creator</p>
+                  <p className="text-sm font-semibold truncate">{challenge.creator.displayName}</p>
+                </div>
+              </div>
+
+              <div className="text-white/20 text-xl font-light">vs</div>
+
+              <div className="flex items-center gap-2.5 flex-1 min-w-0 justify-end">
+                <div className="min-w-0 text-right">
+                  <p className="text-xs text-white/40">Acceptor</p>
+                  <p className="text-sm font-semibold truncate">
+                    {challenge.acceptor?.displayName || <span className="text-white/30 italic">Open</span>}
+                  </p>
+                </div>
+                <div className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: challenge.acceptor ? 'linear-gradient(135deg,rgba(251,203,74,0.3),rgba(255,97,214,0.3))' : 'rgba(255,255,255,0.05)' }}>
+                  {challenge.acceptor ? <User className="h-4 w-4 text-[#FBCB4A]" /> : <Users className="h-4 w-4 text-white/30" />}
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {heroStats.map((stat) => (
+                <div key={stat.label}
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 relative overflow-hidden">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.accent}`} />
+                  <p className="text-[11px] uppercase tracking-wider mb-1 relative" style={{ color: stat.color }}>
+                    {stat.label}
+                  </p>
+                  <p className="text-base font-bold relative text-white leading-tight">{stat.value}</p>
+                  <p className="text-[11px] text-white/30 mt-0.5 relative">{stat.hint}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Creator Role Indicator */}
-        {isCreator && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <User className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-1">You Created This Challenge</h3>
-                <p className="text-sm text-blue-700 mb-3">
-                  {challenge.status === 'OPEN' && 'Waiting for someone to accept your challenge.'}
-                  {challenge.status === 'PENDING_ACCEPTANCE' && 'Waiting for the invited player to accept.'}
-                  {challenge.status === 'ACCEPTED' && !challenge.witness && 'Waiting for a witness to volunteer.'}
-                  {challenge.status === 'ACCEPTED' && challenge.witness && !challenge.roomCode && 'Share the game room code to start.'}
-                  {challenge.status === 'ACCEPTED' && challenge.roomCode && !challenge.creatorJoinedRoom && 'Join the game room and confirm.'}
-                  {challenge.status === 'ACCEPTED' && challenge.creatorJoinedRoom && !challenge.matchStartedAt && 'Waiting for witness to start the match.'}
-                  {challenge.status === 'LIVE' && 'Match is live! Stream your gameplay.'}
-                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date() && 'Match completed. You can dispute if result is incorrect.'}
-                  {challenge.status === 'COMPLETED' && challenge.isDisputed && 'Your dispute is under review.'}
-                  {challenge.status === 'SETTLED' && 'Challenge settled.'}
-                </p>
-                <div className="flex items-center gap-2 text-xs text-blue-600">
-                  <div className="flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded-full ${challenge.status === 'LIVE' ? 'bg-green-500 animate-pulse' : 'bg-blue-400'}`}></div>
-                    <span className="font-semibold">Status: {challenge.status}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Acceptor Role Indicator */}
-        {isAcceptor && (
-          <div className="bg-green-50 border-2 border-green-200 rounded-xl sm:rounded-2xl p-4 sm:p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                <User className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-bold text-green-900 mb-1">You Accepted This Challenge</h3>
-                <p className="text-sm text-green-700 mb-3">
-                  {challenge.status === 'PENDING_ACCEPTANCE' && 'Review the challenge and accept or reject.'}
-                  {challenge.status === 'ACCEPTED' && !challenge.witness && 'Waiting for a witness to volunteer.'}
-                  {challenge.status === 'ACCEPTED' && challenge.witness && !challenge.roomCode && 'Waiting for creator to share room code.'}
-                  {challenge.status === 'ACCEPTED' && challenge.roomCode && !challenge.acceptorJoinedRoom && 'Join the game room and confirm.'}
-                  {challenge.status === 'ACCEPTED' && challenge.acceptorJoinedRoom && !challenge.matchStartedAt && 'Waiting for witness to start the match.'}
-                  {challenge.status === 'LIVE' && 'Match is live! Stream your gameplay.'}
-                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date() && 'Match completed. You can dispute if result is incorrect.'}
-                  {challenge.status === 'COMPLETED' && challenge.isDisputed && 'Your dispute is under review.'}
-                  {challenge.status === 'SETTLED' && 'Challenge settled.'}
-                </p>
-                <div className="flex items-center gap-2 text-xs text-green-600">
-                  <div className="flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded-full ${challenge.status === 'LIVE' ? 'bg-green-500 animate-pulse' : 'bg-green-400'}`}></div>
-                    <span className="font-semibold">Status: {challenge.status}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Witness Role Indicator */}
+        {/* ── Witness banner ── */}
         {isWitness && (
-          <div className="bg-purple-50 border-2 border-purple-200 rounded-xl sm:rounded-2xl p-4 sm:p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-                <Eye className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-bold text-purple-900 mb-1">You are the Witness</h3>
-                <p className="text-sm text-purple-700 mb-3">
-                  {challenge.status === 'ACCEPTED' && !challenge.matchStartedAt && 'Wait for both players to join the room, then start the match.'}
-                  {challenge.status === 'ACCEPTED' && challenge.matchStartedAt && 'Match is in progress. Monitor the streams.'}
-                  {challenge.status === 'LIVE' && 'Match is live! Watch both streams and enter final scores when done.'}
-                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date() && 'Match completed. Waiting for dispute window to end.'}
-                  {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) <= new Date() && 'Ready to settle! Disburse funds to the winner.'}
-                  {challenge.status === 'COMPLETED' && challenge.isDisputed && 'Match is under dispute. Admin will review.'}
-                </p>
-                <div className="flex items-center gap-2 text-xs text-purple-600">
-                  <div className="flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded-full ${challenge.status === 'LIVE' ? 'bg-green-500 animate-pulse' : 'bg-purple-400'}`}></div>
-                    <span className="font-semibold">Status: {challenge.status}</span>
-                  </div>
-                </div>
+          <div className={`${panel} border-[#9B59FF]/20 bg-[#9B59FF]/[0.05] p-4 sm:p-5 flex items-start gap-3`}>
+            <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(155,89,255,0.2)' }}>
+              <Eye className="h-4 w-4" style={{ color: '#9B59FF' }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-bold mb-0.5" style={{ color: '#c4a0ff' }}>You are the Witness</h3>
+              <p className="text-xs text-white/50 leading-relaxed">
+                {challenge.status === 'ACCEPTED' && !challenge.matchStartedAt && 'Wait for both players to join the room, then start the match.'}
+                {challenge.status === 'ACCEPTED' && challenge.matchStartedAt && 'Match is in progress. Monitor the streams.'}
+                {challenge.status === 'LIVE' && 'Match is live! Watch both streams and enter final scores when done.'}
+                {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date() && 'Match completed. Waiting for dispute window to end.'}
+                {challenge.status === 'COMPLETED' && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) <= new Date() && 'Ready to settle! Disburse funds to the winner.'}
+                {challenge.status === 'COMPLETED' && challenge.isDisputed && 'Match is under dispute. Admin will review.'}
+              </p>
+              <div className="flex items-center gap-1.5 mt-2">
+                <div className={`w-1.5 h-1.5 rounded-full ${challenge.status === 'LIVE' ? 'bg-green-400 animate-pulse' : 'bg-[#9B59FF]/60'}`} />
+                <span className="text-[11px] text-white/40 font-medium">Status: {challenge.status}</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Room Code Section */}
+        {/* ── Room Code ── */}
         {showRoomCode && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-              <Key className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+          <div className={`${panel} p-4 sm:p-5`}>
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-4 text-white/90">
+              <Key className="h-4 w-4 text-[#FBCB4A]" />
               Room Code
             </h3>
 
             {isCreator && (
               !challenge.roomCode ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600">Share the game room code to start the match</p>
+                  <p className="text-xs text-white/50">Share the game room code to start the match</p>
                   <button
                     onClick={() => setShowRoomCodeModal(true)}
-                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                    className="w-full py-3 rounded-xl font-semibold text-sm"
+                    style={{ background: '#FBCB4A', color: '#05070b' }}
                   >
                     Share Room Code
                   </button>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">ROOM CODE</p>
-                    <p className="text-2xl font-bold text-gray-900 tracking-wider">{challenge.roomCode}</p>
-                  </div>
-
-                  {/* Streaming Status for Creator */}
-                  {streamingStatus && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-blue-900">Your Stream Status</span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              refetchStreamingStatus();
-                              toast.success('Refreshing streaming status...');
-                            }}
-                            disabled={isRefreshingStreaming}
-                            className="p-1 hover:bg-blue-100 rounded-full transition-colors disabled:opacity-50"
-                            title="Refresh streaming status"
-                          >
-                            <RefreshCw className={`h-4 w-4 text-blue-600 ${isRefreshingStreaming ? 'animate-spin' : ''}`} />
-                          </button>
-                          <div className="flex items-center gap-1">
-                            {streamingStatus.creator.isLive ? (
-                              <>
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                              </>
-                            ) : (
-                              <>
-                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm text-gray-700">{streamingStatus.acceptor.displayName}</span>
-                        <div className="flex items-center gap-1">
-                          {streamingStatus.acceptor.isLive ? (
-                            <>
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {challenge.creatorJoinedRoom ? (
-                    <div className="flex items-center justify-center gap-2 text-green-600">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="text-sm font-semibold">You've joined</span>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => confirmJoinedMutation.mutate()}
-                      disabled={confirmJoinedMutation.isPending}
-                      className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
-                    >
-                      {confirmJoinedMutation.isPending ? 'Confirming...' : "I've Joined"}
-                    </button>
-                  )}
-                </div>
+                <button
+                  onClick={() => confirmJoinedMutation.mutate()}
+                  disabled={confirmJoinedMutation.isPending}
+                  className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50 transition-opacity"
+                  style={{ background: '#00FFB2', color: '#05070b' }}
+                >
+                  {confirmJoinedMutation.isPending ? 'Confirming...' : "I've Joined"}
+                </button>
               )
             )}
 
-            {isAcceptor && (
-              !challenge.roomCode ? (
-                <div className="flex items-center justify-center gap-2 text-gray-500 py-4">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
-                  <span className="text-sm">Waiting for room code...</span>
+            {isAcceptor && challenge.roomCode && (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 text-center">
+                  <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">Room Code</p>
+                  <p className="text-3xl font-black tracking-[0.2em] text-[#00FFB2]">{challenge.roomCode}</p>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">ROOM CODE</p>
-                    <p className="text-2xl font-bold text-gray-900 tracking-wider">{challenge.roomCode}</p>
-                  </div>
-
-                  {/* Streaming Status for Acceptor */}
-                  {streamingStatus && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-green-900">Your Stream Status</span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              refetchStreamingStatus();
-                              toast.success('Refreshing streaming status...');
-                            }}
-                            disabled={isRefreshingStreaming}
-                            className="p-1 hover:bg-green-100 rounded-full transition-colors disabled:opacity-50"
-                            title="Refresh streaming status"
-                          >
-                            <RefreshCw className={`h-4 w-4 text-green-600 ${isRefreshingStreaming ? 'animate-spin' : ''}`} />
-                          </button>
-                          <div className="flex items-center gap-1">
-                            {streamingStatus.acceptor.isLive ? (
-                              <>
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                              </>
-                            ) : (
-                              <>
-                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm text-gray-700">{streamingStatus.creator.displayName}</span>
-                        <div className="flex items-center gap-1">
-                          {streamingStatus.creator.isLive ? (
-                            <>
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {challenge.acceptorJoinedRoom ? (
-                    <div className="flex items-center justify-center gap-2 text-green-600">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="text-sm font-semibold">You've joined</span>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => confirmJoinedMutation.mutate()}
-                      disabled={confirmJoinedMutation.isPending}
-                      className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
-                    >
-                      {confirmJoinedMutation.isPending ? 'Confirming...' : "I've Joined"}
-                    </button>
-                  )}
-                </div>
-              )
+                <button
+                  onClick={() => confirmJoinedMutation.mutate()}
+                  disabled={confirmJoinedMutation.isPending}
+                  className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50"
+                  style={{ background: '#00FFB2', color: '#05070b' }}
+                >
+                  {confirmJoinedMutation.isPending ? 'Confirming...' : "I've Joined"}
+                </button>
+              </div>
             )}
 
             {isWitness && challenge.roomCode && (
               <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-xs text-gray-500 mb-1">ROOM CODE</p>
-                  <p className="text-2xl font-bold text-gray-900 tracking-wider">{challenge.roomCode}</p>
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 text-center">
+                  <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">Room Code</p>
+                  <p className="text-3xl font-black tracking-[0.2em] text-[#00FFB2]">{challenge.roomCode}</p>
                 </div>
 
-                {/* Streaming Status for Witness */}
                 {streamingStatus && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-purple-900">Live Streaming Status</p>
+                  <div className="rounded-xl border border-[#9B59FF]/20 bg-[#9B59FF]/[0.06] p-3">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#c4a0ff]">Streaming Status</p>
                       <button
-                        onClick={() => {
-                          refetchStreamingStatus();
-                          toast.success('Refreshing streaming status...');
-                        }}
+                        onClick={() => { refetchStreamingStatus(); toast.success('Refreshing...'); }}
                         disabled={isRefreshingStreaming}
-                        className="p-1 hover:bg-purple-100 rounded-full transition-colors disabled:opacity-50"
-                        title="Refresh streaming status"
+                        className="p-1 rounded-lg hover:bg-white/[0.06] transition-colors disabled:opacity-50"
                       >
-                        <RefreshCw className={`h-3 w-3 text-purple-600 ${isRefreshingStreaming ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`h-3.5 w-3.5 text-white/40 ${isRefreshingStreaming ? 'animate-spin' : ''}`} />
                       </button>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">{streamingStatus.creator.displayName}</span>
-                        <div className="flex items-center gap-1">
-                          {streamingStatus.creator.isLive ? (
-                            <>
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                            </>
-                          )}
+                      {[
+                        { name: streamingStatus.creator.displayName, isLive: streamingStatus.creator.isLive },
+                        { name: streamingStatus.acceptor.displayName, isLive: streamingStatus.acceptor.isLive },
+                      ].map((p) => (
+                        <div key={p.name} className="flex items-center justify-between">
+                          <span className="text-xs text-white/70">{p.name}</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-1.5 h-1.5 rounded-full ${p.isLive ? 'bg-[#00FFB2] animate-pulse' : 'bg-red-500/60'}`} />
+                            <span className={`text-[11px] font-bold ${p.isLive ? 'text-[#00FFB2]' : 'text-red-400'}`}>
+                              {p.isLive ? 'LIVE' : 'OFFLINE'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">{streamingStatus.acceptor.displayName}</span>
-                        <div className="flex items-center gap-1">
-                          {streamingStatus.acceptor.isLive ? (
-                            <>
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-green-600 font-semibold">LIVE</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              <span className="text-xs text-red-600 font-semibold">OFFLINE</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 )}
 
                 {!challenge.creatorJoinedRoom || !challenge.acceptorJoinedRoom ? (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <p className="text-sm text-yellow-800 text-center">Waiting for players to join...</p>
-                    <div className="flex justify-center gap-4 mt-2">
-                      <div className="flex items-center gap-1">
-                        {challenge.creatorJoinedRoom ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-300"></div>
-                        )}
-                        <span className="text-xs text-gray-600">Creator</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {challenge.acceptorJoinedRoom ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-300"></div>
-                        )}
-                        <span className="text-xs text-gray-600">Acceptor</span>
-                      </div>
+                  <div className="rounded-xl border border-[#FBCB4A]/20 bg-[#FBCB4A]/[0.06] p-3">
+                    <p className="text-xs text-[#FBCB4A]/80 text-center mb-2">Waiting for players to join...</p>
+                    <div className="flex justify-center gap-6">
+                      {[
+                        { label: 'Creator', joined: challenge.creatorJoinedRoom },
+                        { label: 'Acceptor', joined: challenge.acceptorJoinedRoom },
+                      ].map((p) => (
+                        <div key={p.label} className="flex items-center gap-1.5">
+                          {p.joined
+                            ? <CheckCircle className="h-4 w-4 text-[#00FFB2]" />
+                            : <div className="h-4 w-4 rounded-full border-2 border-white/20" />
+                          }
+                          <span className="text-xs text-white/50">{p.label}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={() => setShowStartMatchModal(true)}
-                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
+                    style={{ background: '#7C8CFF', color: '#fff' }}
                   >
-                    <PlayCircle className="h-5 w-5" />
+                    <PlayCircle className="h-4 w-4" />
                     Start Match
                   </button>
                 )}
@@ -847,96 +636,94 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
           </div>
         )}
 
-        {/* Complete Match (Witness - LIVE) */}
+        {/* ── Complete Match ── */}
         {canCompleteMatch && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2 mb-3">
-              <Clipboard className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+          <div className={`${panel} p-4 sm:p-5`}>
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-3 text-white/90">
+              <Clipboard className="h-4 w-4 text-[#FBCB4A]" />
               Complete Match
             </h3>
-            <p className="text-sm text-gray-600 mb-4">Enter the final scores to complete this match. Players will have 10 minutes to dispute.</p>
+            <p className="text-xs text-white/40 mb-4 leading-relaxed">Enter the final scores to complete this match. Players will have 10 minutes to dispute.</p>
             <button
               onClick={() => setShowScoreModal(true)}
-              className="w-full py-3 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700"
+              className="w-full py-3 rounded-xl font-semibold text-sm"
+              style={{ background: '#FBCB4A', color: '#05070b' }}
             >
               Enter Final Scores
             </button>
           </div>
         )}
 
-        {/* Dispute Result */}
+        {/* ── Dispute Result ── */}
         {canDispute && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-yellow-200">
-            <h3 className="text-base sm:text-lg font-bold text-yellow-900 flex items-center gap-2 mb-3">
-              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+          <div className={`${panel} border-[#FF9F43]/20 bg-[#FF9F43]/[0.04] p-4 sm:p-5`}>
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-3" style={{ color: '#FFB870' }}>
+              <AlertCircle className="h-4 w-4 text-[#FF9F43]" />
               Dispute Result
             </h3>
-            
-            {/* Countdown Timer */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-yellow-600" />
-                  <span className="text-sm font-semibold text-yellow-900">Time Remaining</span>
-                </div>
-                <span className="text-lg font-bold text-yellow-600 tabular-nums">
-                  {disputeTimeRemaining || 'Calculating...'}
-                </span>
+            <div className="rounded-xl border border-[#FF9F43]/20 bg-[#FF9F43]/[0.08] p-3 mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#FF9F43]" />
+                <span className="text-xs font-semibold text-[#FF9F43]/80">Time Remaining</span>
               </div>
+              <span className="text-base font-black text-[#FF9F43] tabular-nums">
+                {disputeTimeRemaining || 'Calculating...'}
+              </span>
             </div>
-
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-xs text-white/40 mb-4 leading-relaxed">
               If you believe the result is incorrect, you can dispute it before the deadline expires.
             </p>
             <button
               onClick={() => setShowDisputeModal(true)}
-              className="w-full py-3 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700"
+              className="w-full py-3 rounded-xl font-semibold text-sm"
+              style={{ background: '#FF9F43', color: '#fff' }}
             >
               Dispute Result
             </button>
           </div>
         )}
 
-        {/* Settle Challenge (Witness) */}
+        {/* ── Settle ── */}
         {canSettle && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-green-200">
-            <h3 className="text-base sm:text-lg font-bold text-green-900 flex items-center gap-2 mb-3">
-              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+          <div className={`${panel} border-[#00FFB2]/20 bg-[#00FFB2]/[0.04] p-4 sm:p-5`}>
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-3 text-[#00FFB2]">
+              <CheckCircle className="h-4 w-4" />
               Ready to Settle
             </h3>
-            <p className="text-sm text-gray-600 mb-4">The dispute window has ended. You can now settle this challenge and disburse funds.</p>
+            <p className="text-xs text-white/40 mb-4 leading-relaxed">The dispute window has ended. You can now settle this challenge and disburse funds.</p>
             <button
               onClick={() => settleMutation.mutate()}
               disabled={settleMutation.isPending}
-              className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
+              className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50"
+              style={{ background: '#00FFB2', color: '#05070b' }}
             >
               {settleMutation.isPending ? 'Settling...' : 'Settle Challenge'}
             </button>
           </div>
         )}
 
-        {/* Results */}
+        {/* ── Results ── */}
         {(challenge.status === 'COMPLETED' || challenge.status === 'SETTLED') && challenge.finalScore && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-              <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+          <div className={`${panel} p-4 sm:p-6`}>
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-5 text-white/90">
+              <Trophy className="h-4 w-4 text-[#FBCB4A]" />
               Results
             </h3>
-            <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="flex items-center justify-center gap-6 mb-5">
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">{challenge.creator.displayName}</p>
-                <p className="text-3xl font-bold text-gray-900">{challenge.finalScore.creator}</p>
+                <p className="text-xs text-white/40 mb-1">{challenge.creator.displayName}</p>
+                <p className="text-5xl font-black text-white">{challenge.finalScore.creator}</p>
               </div>
-              <span className="text-2xl font-bold text-gray-400">-</span>
+              <span className="text-2xl font-light text-white/20">—</span>
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">{challenge.acceptor?.displayName}</p>
-                <p className="text-3xl font-bold text-gray-900">{challenge.finalScore.acceptor}</p>
+                <p className="text-xs text-white/40 mb-1">{challenge.acceptor?.displayName}</p>
+                <p className="text-5xl font-black text-white">{challenge.finalScore.acceptor}</p>
               </div>
             </div>
             {challenge.winner && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center justify-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-600" />
-                <p className="text-sm font-semibold text-yellow-900">
+              <div className="rounded-xl border border-[#FBCB4A]/20 bg-[#FBCB4A]/[0.08] p-3 flex items-center justify-center gap-2">
+                <Trophy className="h-4 w-4 text-[#FBCB4A]" />
+                <p className="text-sm font-bold text-[#FBCB4A]">
                   {challenge.winnerUsername} won ₦{challenge.winnerPayout?.toLocaleString()}!
                 </p>
               </div>
@@ -944,134 +731,110 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
           </div>
         )}
 
-        {/* Live Streaming Section - Visible to All Participants */}
+        {/* ── Live Streams ── */}
         {streamingStatus && (streamingStatus.creator.isLive || streamingStatus.acceptor.isLive) && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 space-y-4 sm:space-y-6">
+          <div className={`${panel} p-4 sm:p-6 space-y-4`}>
             <div className="flex items-center justify-between">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Radio className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 animate-pulse" />
+              <h3 className="text-sm font-bold flex items-center gap-2 text-white/90">
+                <Radio className="h-4 w-4 text-[#FF6B6B] animate-pulse" />
                 Watch Live Streams
               </h3>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 rounded-full">
-                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-                <span className="text-xs font-bold text-red-600">LIVE</span>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ background: 'rgba(255,107,107,0.15)' }}>
+                <div className="w-1.5 h-1.5 bg-[#FF6B6B] rounded-full animate-pulse" />
+                <span className="text-[11px] font-bold text-[#FF6B6B]">LIVE</span>
               </div>
             </div>
-
-            {/* Show both streams side-by-side when both are live, or single stream when only one is live */}
-            <div className={`grid gap-4 sm:gap-6 ${streamingStatus.creator.isLive && streamingStatus.acceptor.isLive ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+            <div className={`grid gap-4 ${streamingStatus.creator.isLive && streamingStatus.acceptor.isLive ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
               {streamingStatus.creator.isLive && streamingStatus.creator.streamUrl && (
                 <div className={isCreator ? 'order-1' : 'order-2'}>
                   <StreamPlayer
                     platform={streamingStatus.creator.platform as 'YOUTUBE' | 'TWITCH'}
                     url={streamingStatus.creator.streamUrl}
-                    label={`${streamingStatus.creator.displayName}'s Stream ${isCreator ? '(You)' : ''}`}
+                    label={`${streamingStatus.creator.displayName}'s Stream${isCreator ? ' (You)' : ''}`}
                   />
                 </div>
               )}
-
               {streamingStatus.acceptor.isLive && streamingStatus.acceptor.streamUrl && (
                 <div className={isAcceptor ? 'order-1' : 'order-2'}>
                   <StreamPlayer
                     platform={streamingStatus.acceptor.platform as 'YOUTUBE' | 'TWITCH'}
                     url={streamingStatus.acceptor.streamUrl}
-                    label={`${streamingStatus.acceptor.displayName}'s Stream ${isAcceptor ? '(You)' : ''}`}
+                    label={`${streamingStatus.acceptor.displayName}'s Stream${isAcceptor ? ' (You)' : ''}`}
                   />
                 </div>
               )}
             </div>
-
-            {/* Info message for participants */}
             {(isCreator || isAcceptor) && streamingStatus.bothLive && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800 text-center">
-                  💡 You can watch both streams to ensure you're playing the same match
-                </p>
+              <div className="rounded-xl border border-[#7C8CFF]/20 bg-[#7C8CFF]/[0.06] p-3">
+                <p className="text-xs text-[#7C8CFF]/80 text-center">💡 Watch both streams to ensure you're playing the same match</p>
               </div>
             )}
-
             {isWitness && streamingStatus.bothLive && (
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                <p className="text-xs text-purple-800 text-center">
-                  👁️ Monitor both streams to verify fair gameplay
-                </p>
+              <div className="rounded-xl border border-[#9B59FF]/20 bg-[#9B59FF]/[0.06] p-3">
+                <p className="text-xs text-[#c4a0ff]/80 text-center">👁️ Monitor both streams to verify fair gameplay</p>
               </div>
             )}
           </div>
         )}
 
-        {/* Streaming Section (Saved Links - Fallback) */}
-        {!streamingStatus?.creator.isLive && !streamingStatus?.acceptor.isLive && 
-         ((challenge.creatorStreamingLink?.platform && challenge.creatorStreamingLink?.url) || 
-         (challenge.acceptorStreamingLink?.platform && challenge.acceptorStreamingLink?.url)) ? (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 space-y-4 sm:space-y-6">
-            <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Radio className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-              Stream Links (Offline)
+        {/* ── Saved stream links (offline fallback) ── */}
+        {!streamingStatus?.creator.isLive && !streamingStatus?.acceptor.isLive &&
+          ((challenge.creatorStreamingLink?.platform && challenge.creatorStreamingLink?.url) ||
+           (challenge.acceptorStreamingLink?.platform && challenge.acceptorStreamingLink?.url)) && (
+          <div className={`${panel} p-4 sm:p-5 space-y-4`}>
+            <h3 className="text-sm font-bold flex items-center gap-2 text-white/90">
+              <Radio className="h-4 w-4 text-white/30" />
+              Stream Links <span className="text-[11px] font-normal text-white/30">(Offline)</span>
             </h3>
-
-            {challenge.creatorStreamingLink?.platform && challenge.creatorStreamingLink?.url && (
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-gray-700">{challenge.creator.displayName}'s Stream</p>
-                <a 
-                  href={challenge.creatorStreamingLink.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline break-all"
-                >
+            {challenge.creatorStreamingLink?.url && (
+              <div>
+                <p className="text-xs font-semibold text-white/60 mb-1">{challenge.creator.displayName}</p>
+                <a href={challenge.creatorStreamingLink.url} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-[#7C8CFF] hover:underline break-all">
                   {challenge.creatorStreamingLink.url}
                 </a>
               </div>
             )}
-
-            {challenge.acceptorStreamingLink?.platform && challenge.acceptorStreamingLink?.url && (
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-gray-700">{challenge.acceptor?.displayName}'s Stream</p>
-                <a 
-                  href={challenge.acceptorStreamingLink.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline break-all"
-                >
+            {challenge.acceptorStreamingLink?.url && (
+              <div>
+                <p className="text-xs font-semibold text-white/60 mb-1">{challenge.acceptor?.displayName}</p>
+                <a href={challenge.acceptorStreamingLink.url} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-[#7C8CFF] hover:underline break-all">
                   {challenge.acceptorStreamingLink.url}
                 </a>
               </div>
             )}
-
             {canUpdateStreaming && (
-              <div className="border-t border-gray-200 pt-4">
-                <p className="text-sm font-semibold text-gray-700 mb-3">
+              <div className="border-t border-white/[0.06] pt-4">
+                <p className="text-xs font-semibold text-white/60 mb-3">
                   {(isCreator && challenge.creatorStreamingLink) || (isAcceptor && challenge.acceptorStreamingLink)
-                    ? 'Update Your Stream Link'
-                    : 'Add Your Stream Link'}
+                    ? 'Update Your Stream Link' : 'Add Your Stream Link'}
                 </p>
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  <button
-                    onClick={() => setStreamingPlatform('YOUTUBE')}
-                    className={`py-2 rounded-lg font-semibold ${streamingPlatform === 'YOUTUBE' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    YouTube
-                  </button>
-                  <button
-                    onClick={() => setStreamingPlatform('TWITCH')}
-                    className={`py-2 rounded-lg font-semibold ${streamingPlatform === 'TWITCH' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    Twitch
-                  </button>
+                  {(['YOUTUBE', 'TWITCH'] as StreamingPlatform[]).map((p) => (
+                    <button key={p}
+                      onClick={() => setStreamingPlatform(p)}
+                      className="py-2 rounded-xl text-xs font-bold transition-all"
+                      style={{
+                        background: streamingPlatform === p
+                          ? p === 'YOUTUBE' ? '#FF0000' : '#9146FF'
+                          : 'rgba(255,255,255,0.06)',
+                        color: streamingPlatform === p ? '#fff' : 'rgba(255,255,255,0.6)',
+                      }}
+                    >
+                      {p === 'YOUTUBE' ? 'YouTube' : 'Twitch'}
+                    </button>
+                  ))}
                 </div>
                 {streamingPlatform && (
                   <div className="space-y-2">
-                    <input
-                      type="url"
-                      value={streamingUrl}
-                      onChange={(e) => setStreamingUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    <input type="url" value={streamingUrl} onChange={(e) => setStreamingUrl(e.target.value)}
+                      placeholder="https://..." className={inputClass} />
                     <button
                       onClick={() => updateStreamingMutation.mutate({ platform: streamingPlatform, url: streamingUrl })}
                       disabled={!streamingUrl || updateStreamingMutation.isPending}
-                      className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+                      className="w-full py-2.5 rounded-xl font-semibold text-sm disabled:opacity-50"
+                      style={{ background: '#00FFB2', color: '#05070b' }}
                     >
                       {updateStreamingMutation.isPending ? 'Saving...' : 'Save Link'}
                     </button>
@@ -1080,10 +843,26 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
               </div>
             )}
           </div>
-        ) : null}
+        )}
 
-        {/* Actions */}
-        <div className="space-y-2.5 sm:space-y-3">
+        {/* ── Timeline ── */}
+        <div className={`${panel} p-4 sm:p-5`}>
+          <h3 className="text-xs uppercase tracking-widest text-white/30 mb-4">Timeline</h3>
+          <div className="space-y-3">
+            {timeline.map((t, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20 mt-1.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0 flex justify-between gap-2">
+                  <span className="text-xs text-white/40">{t.label}</span>
+                  <span className="text-xs text-white/70 font-medium text-right">{t.value}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── CTA Actions ── */}
+        <div className="space-y-2.5">
           {canAccept && (
             <button
               onClick={() => {
@@ -1094,7 +873,8 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
                 }
                 setShowAcceptModal(true);
               }}
-              className="w-full py-3.5 sm:py-4 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base hover:bg-blue-700 transition-colors"
+              className="w-full py-4 rounded-2xl font-bold text-base tracking-wide"
+              style={{ background: '#00FFB2', color: '#05070b' }}
             >
               Accept Challenge
             </button>
@@ -1104,7 +884,8 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
             <button
               onClick={() => volunteerWitnessMutation.mutate()}
               disabled={volunteerWitnessMutation.isPending}
-              className="w-full py-3.5 sm:py-4 bg-purple-600 text-white rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base hover:bg-purple-700 transition-colors disabled:opacity-50"
+              className="w-full py-4 rounded-2xl font-bold text-base disabled:opacity-50"
+              style={{ background: '#9B59FF', color: '#fff' }}
             >
               {volunteerWitnessMutation.isPending ? 'Volunteering...' : 'Volunteer as Witness'}
             </button>
@@ -1113,7 +894,7 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
           {canFlag && (
             <button
               onClick={() => setShowFlagModal(true)}
-              className="w-full py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-semibold hover:bg-red-100 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border border-[#FF6B6B]/30 text-[#FF6B6B] hover:bg-[#FF6B6B]/[0.08] transition-colors"
             >
               <Flag className="h-4 w-4" />
               Flag Match
@@ -1122,18 +903,14 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
 
           <div className="flex gap-2">
             {canReject && (
-              <button
-                onClick={() => setShowRejectModal(true)}
-                className="flex-1 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-semibold hover:bg-red-100"
-              >
+              <button onClick={() => setShowRejectModal(true)}
+                className="flex-1 py-3 rounded-xl font-semibold text-sm border border-[#F87171]/30 text-[#F87171] hover:bg-[#F87171]/[0.08] transition-colors">
                 Reject
               </button>
             )}
             {canCancel && (
-              <button
-                onClick={() => setShowCancelModal(true)}
-                className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
+              <button onClick={() => setShowCancelModal(true)}
+                className="flex-1 py-3 rounded-xl font-semibold text-sm border border-white/10 text-white/50 hover:bg-white/[0.05] transition-colors">
                 Cancel Challenge
               </button>
             )}
@@ -1141,31 +918,21 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       </div>
 
-      {/* Accept Modal */}
+      {/* ════════════════════════ MODALS ════════════════════════ */}
+
+      {/* Accept */}
       {showAcceptModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">Accept Challenge</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              You will stake ₦{challenge.stakeAmount.toLocaleString()}. Are you ready to compete?
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <p className="text-xs text-blue-800">
-                Make sure you have your streaming account connected and ready to go live when the match starts.
-              </p>
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">Accept Challenge</h3>
+            <p className="text-sm text-white/50 mb-4">You will stake <span className="text-[#FBCB4A] font-bold">₦{challenge.stakeAmount.toLocaleString()}</span>. Are you ready to compete?</p>
+            <div className="rounded-xl border border-[#7C8CFF]/20 bg-[#7C8CFF]/[0.06] p-3 mb-5">
+              <p className="text-xs text-[#7C8CFF]/80">Make sure your streaming account is connected and ready to go live when the match starts.</p>
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={() => setShowAcceptModal(false)}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => acceptMutation.mutate()}
-                disabled={acceptMutation.isPending}
-                className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-              >
+              <button onClick={() => setShowAcceptModal(false)} className={btnGhost}>Cancel</button>
+              <button onClick={() => acceptMutation.mutate()} disabled={acceptMutation.isPending}
+                className={btnPrimary} style={{ background: '#00FFB2', color: '#05070b' }}>
                 {acceptMutation.isPending ? 'Accepting...' : 'Accept Challenge'}
               </button>
             </div>
@@ -1173,34 +940,24 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       )}
 
-      {/* Start Match Modal */}
+      {/* Start Match */}
       {showStartMatchModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">Start Match</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Before starting the match, please confirm both players are streaming live.
-            </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-              <p className="text-xs text-yellow-800 font-semibold mb-2">Witness Checklist:</p>
-              <ul className="text-xs text-yellow-800 space-y-1">
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">Start Match</h3>
+            <p className="text-sm text-white/50 mb-4">Confirm both players are streaming live before starting.</p>
+            <div className="rounded-xl border border-[#FBCB4A]/20 bg-[#FBCB4A]/[0.06] p-3 mb-5">
+              <p className="text-xs font-semibold text-[#FBCB4A]/80 mb-2">Witness Checklist</p>
+              <ul className="text-xs text-white/50 space-y-1">
                 <li>✓ Both players must be live streaming</li>
                 <li>✓ Verify streaming links are active</li>
                 <li>✓ Ensure you can view both streams clearly</li>
               </ul>
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={() => setShowStartMatchModal(false)}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => startMatchMutation.mutate()}
-                disabled={startMatchMutation.isPending}
-                className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-              >
+              <button onClick={() => setShowStartMatchModal(false)} className={btnGhost}>Cancel</button>
+              <button onClick={() => startMatchMutation.mutate()} disabled={startMatchMutation.isPending}
+                className={btnPrimary} style={{ background: '#7C8CFF', color: '#fff' }}>
                 {startMatchMutation.isPending ? 'Starting...' : 'Start Match'}
               </button>
             </div>
@@ -1208,31 +965,18 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       )}
 
-      {/* Reject Modal */}
+      {/* Reject */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">Reject Challenge</h3>
-            <p className="text-sm text-gray-600 mb-4">The creator will be fully refunded their stake.</p>
-            <textarea
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Reason (optional)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={3}
-            />
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">Reject Challenge</h3>
+            <p className="text-sm text-white/50 mb-4">The creator will be fully refunded their stake.</p>
+            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Reason (optional)" className={textareaClass} rows={3} />
             <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setShowRejectModal(false)}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Go Back
-              </button>
-              <button
-                onClick={() => rejectMutation.mutate()}
-                disabled={rejectMutation.isPending}
-                className="flex-1 py-2.5 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50"
-              >
+              <button onClick={() => setShowRejectModal(false)} className={btnGhost}>Go Back</button>
+              <button onClick={() => rejectMutation.mutate()} disabled={rejectMutation.isPending}
+                className={btnPrimary} style={{ background: '#F87171', color: '#fff' }}>
                 {rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
               </button>
             </div>
@@ -1240,31 +984,18 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       )}
 
-      {/* Cancel Modal */}
+      {/* Cancel */}
       {showCancelModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">Cancel Challenge</h3>
-            <p className="text-sm text-gray-600 mb-4">Your stake will be returned to your wallet.</p>
-            <textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Reason (optional)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={3}
-            />
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">Cancel Challenge</h3>
+            <p className="text-sm text-white/50 mb-4">Your stake will be returned to your wallet.</p>
+            <textarea value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Reason (optional)" className={textareaClass} rows={3} />
             <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Go Back
-              </button>
-              <button
-                onClick={() => cancelMutation.mutate()}
-                disabled={cancelMutation.isPending}
-                className="flex-1 py-2.5 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 disabled:opacity-50"
-              >
+              <button onClick={() => setShowCancelModal(false)} className={btnGhost}>Go Back</button>
+              <button onClick={() => cancelMutation.mutate()} disabled={cancelMutation.isPending}
+                className={btnPrimary} style={{ background: 'rgba(255,255,255,0.12)', color: '#fff' }}>
                 {cancelMutation.isPending ? 'Cancelling...' : 'Cancel Challenge'}
               </button>
             </div>
@@ -1272,43 +1003,21 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       )}
 
-      {/* Room Code Modal */}
+      {/* Room Code */}
       {showRoomCodeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
-              {challenge.roomCode ? 'Update Room Code' : 'Share Room Code'}
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">Enter the game room code for players to join</p>
-            <input
-              type="text"
-              value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-              placeholder="ROOM CODE"
-              className="w-full px-4 py-3 text-center text-xl font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 tracking-wider uppercase"
-              maxLength={20}
-            />
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">{challenge.roomCode ? 'Update Room Code' : 'Share Room Code'}</h3>
+            <p className="text-sm text-white/50 mb-4">Enter the game room code for players to join</p>
+            <input type="text" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              placeholder="ROOM CODE" maxLength={20}
+              className={`${inputClass} text-center text-2xl font-black tracking-[0.25em] uppercase`} />
             <div className="flex gap-2 mt-4">
+              <button onClick={() => { setShowRoomCodeModal(false); setRoomCode(''); }} className={btnGhost}>Cancel</button>
               <button
-                onClick={() => {
-                  setShowRoomCodeModal(false);
-                  setRoomCode('');
-                }}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (!roomCode.trim()) {
-                    toast.error('Please enter a room code');
-                    return;
-                  }
-                  shareRoomCodeMutation.mutate(roomCode.trim());
-                }}
+                onClick={() => { if (!roomCode.trim()) { toast.error('Please enter a room code'); return; } shareRoomCodeMutation.mutate(roomCode.trim()); }}
                 disabled={!roomCode.trim() || shareRoomCodeMutation.isPending}
-                className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-              >
+                className={btnPrimary} style={{ background: '#00FFB2', color: '#05070b' }}>
                 {shareRoomCodeMutation.isPending ? 'Sharing...' : challenge.roomCode ? 'Update' : 'Share'}
               </button>
             </div>
@@ -1316,77 +1025,38 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       )}
 
-      {/* Score Entry Modal */}
+      {/* Score */}
       {showScoreModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">Enter Final Scores</h3>
-            <p className="text-sm text-gray-600 mb-4">Enter the final score for each player</p>
-            
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">Enter Final Scores</h3>
+            <p className="text-sm text-white/50 mb-5">Enter the final score for each player</p>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {challenge.creator.displayName} (Creator)
-                </label>
-                <input
-                  type="number"
-                  value={creatorScore}
-                  onChange={(e) => setCreatorScore(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                  max="99"
-                  className="w-full px-4 py-3 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {challenge.acceptor?.displayName} (Acceptor)
-                </label>
-                <input
-                  type="number"
-                  value={acceptorScore}
-                  onChange={(e) => setAcceptorScore(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                  max="99"
-                  className="w-full px-4 py-3 text-center text-2xl font-bold border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                />
-              </div>
+              {[
+                { label: `${challenge.creator.displayName} (Creator)`, val: creatorScore, setVal: setCreatorScore, color: '#00FFB2' },
+                { label: `${challenge.acceptor?.displayName} (Acceptor)`, val: acceptorScore, setVal: setAcceptorScore, color: '#FF61D6' },
+              ].map((p) => (
+                <div key={p.label}>
+                  <label className="block text-xs font-semibold text-white/50 mb-2">{p.label}</label>
+                  <input type="number" value={p.val} onChange={(e) => p.setVal(e.target.value)}
+                    placeholder="0" min="0" max="99"
+                    className={`${inputClass} text-center text-4xl font-black`}
+                    style={{ borderColor: `${p.color}30`, color: p.color }} />
+                </div>
+              ))}
             </div>
-
             <div className="flex gap-2 mt-6">
+              <button onClick={() => { setShowScoreModal(false); setCreatorScore(''); setAcceptorScore(''); }} className={btnGhost}>Cancel</button>
               <button
                 onClick={() => {
-                  setShowScoreModal(false);
-                  setCreatorScore('');
-                  setAcceptorScore('');
-                }}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  const creator = parseInt(creatorScore);
-                  const acceptor = parseInt(acceptorScore);
-                  if (isNaN(creator) || isNaN(acceptor)) {
-                    toast.error('Please enter valid scores for both players');
-                    return;
-                  }
-                  if (creator < 0 || acceptor < 0) {
-                    toast.error('Scores cannot be negative');
-                    return;
-                  }
-                  if (creator > 99 || acceptor > 99) {
-                    toast.error('Scores seem unrealistic. Please verify.');
-                    return;
-                  }
-                  completeMatchMutation.mutate({ creatorScore: creator, acceptorScore: acceptor });
+                  const c = parseInt(creatorScore), a = parseInt(acceptorScore);
+                  if (isNaN(c) || isNaN(a)) { toast.error('Please enter valid scores for both players'); return; }
+                  if (c < 0 || a < 0) { toast.error('Scores cannot be negative'); return; }
+                  if (c > 99 || a > 99) { toast.error('Scores seem unrealistic. Please verify.'); return; }
+                  completeMatchMutation.mutate({ creatorScore: c, acceptorScore: a });
                 }}
                 disabled={!creatorScore || !acceptorScore || completeMatchMutation.isPending}
-                className="flex-1 py-2.5 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 disabled:opacity-50"
-              >
+                className={btnPrimary} style={{ background: '#FBCB4A', color: '#05070b' }}>
                 {completeMatchMutation.isPending ? 'Completing...' : 'Complete Match'}
               </button>
             </div>
@@ -1394,44 +1064,24 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       )}
 
-      {/* Flag Match Modal */}
+      {/* Flag */}
       {showFlagModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">Flag This Match</h3>
-            <p className="text-sm text-gray-600 mb-4">Report suspicious activity or rule violations</p>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-              <p className="text-xs text-red-800">Only flag for genuine issues. False reports may result in account penalties.</p>
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">Flag This Match</h3>
+            <p className="text-sm text-white/50 mb-4">Report suspicious activity or rule violations</p>
+            <div className="rounded-xl border border-[#F87171]/20 bg-[#F87171]/[0.06] p-3 mb-4">
+              <p className="text-xs text-[#F87171]/80">Only flag for genuine issues. False reports may result in account penalties.</p>
             </div>
-            <textarea
-              value={flagReason}
-              onChange={(e) => setFlagReason(e.target.value)}
-              placeholder="What did you observe? Include specific details..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 resize-none"
-              rows={4}
-            />
-            <p className="text-xs text-gray-500 mt-1">{flagReason.trim().length}/10 min characters</p>
+            <textarea value={flagReason} onChange={(e) => setFlagReason(e.target.value)}
+              placeholder="What did you observe? Include specific details..." className={textareaClass} rows={4} />
+            <p className="text-[11px] text-white/30 mt-1">{flagReason.trim().length}/10 min characters</p>
             <div className="flex gap-2 mt-4">
+              <button onClick={() => { setShowFlagModal(false); setFlagReason(''); }} className={btnGhost}>Cancel</button>
               <button
-                onClick={() => {
-                  setShowFlagModal(false);
-                  setFlagReason('');
-                }}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (flagReason.trim().length < 10) {
-                    toast.error('Please provide a detailed reason (minimum 10 characters)');
-                    return;
-                  }
-                  flagMatchMutation.mutate(flagReason.trim());
-                }}
+                onClick={() => { if (flagReason.trim().length < 10) { toast.error('Please provide a detailed reason (minimum 10 characters)'); return; } flagMatchMutation.mutate(flagReason.trim()); }}
                 disabled={flagReason.trim().length < 10 || flagMatchMutation.isPending}
-                className="flex-1 py-2.5 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50"
-              >
+                className={btnPrimary} style={{ background: '#F87171', color: '#fff' }}>
                 {flagMatchMutation.isPending ? 'Submitting...' : 'Submit Flag'}
               </button>
             </div>
@@ -1439,49 +1089,38 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
         </div>
       )}
 
-      {/* Dispute Modal */}
+      {/* Dispute */}
       {showDisputeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">Dispute Result</h3>
-            <p className="text-sm text-gray-600 mb-4">Challenge the outcome within the dispute window</p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-              <p className="text-xs text-yellow-800">Provide clear evidence. Frivolous disputes may affect your account standing.</p>
+        <div className={modalOverlay}>
+          <div className={modalBox}>
+            <h3 className="text-lg font-bold mb-2">Dispute Result</h3>
+            <p className="text-sm text-white/50 mb-4">Challenge the outcome within the dispute window</p>
+            <div className="rounded-xl border border-[#FF9F43]/20 bg-[#FF9F43]/[0.06] p-3 mb-4">
+              <p className="text-xs text-[#FF9F43]/80">Provide clear evidence. Frivolous disputes may affect your account standing.</p>
             </div>
-            <textarea
-              value={disputeReason}
-              onChange={(e) => setDisputeReason(e.target.value)}
+            <textarea value={disputeReason} onChange={(e) => setDisputeReason(e.target.value)}
               placeholder="Explain in detail why the result is wrong. Reference timestamps or other evidence..."
-              className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 resize-none"
-              rows={4}
-            />
-            <p className="text-xs text-gray-500 mt-1">{disputeReason.trim().length}/20 min characters</p>
+              className={textareaClass} rows={4} />
+            <p className="text-[11px] text-white/30 mt-1">{disputeReason.trim().length}/20 min characters</p>
             <div className="flex gap-2 mt-4">
+              <button onClick={() => { setShowDisputeModal(false); setDisputeReason(''); }} className={btnGhost}>Cancel</button>
               <button
-                onClick={() => {
-                  setShowDisputeModal(false);
-                  setDisputeReason('');
-                }}
-                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (disputeReason.trim().length < 20) {
-                    toast.error('Please provide a detailed reason (minimum 20 characters)');
-                    return;
-                  }
-                  disputeMatchMutation.mutate(disputeReason.trim());
-                }}
+                onClick={() => { if (disputeReason.trim().length < 20) { toast.error('Please provide a detailed reason (minimum 20 characters)'); return; } disputeMatchMutation.mutate(disputeReason.trim()); }}
                 disabled={disputeReason.trim().length < 20 || disputeMatchMutation.isPending}
-                className="flex-1 py-2.5 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 disabled:opacity-50"
-              >
+                className={btnPrimary} style={{ background: '#FF9F43', color: '#fff' }}>
                 {disputeMatchMutation.isPending ? 'Submitting...' : 'Submit Dispute'}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Phone Verification */}
+      {showPhoneVerificationModal && (
+        <PhoneVerification onVerified={() => {
+          setShowPhoneVerificationModal(false);
+          volunteerWitnessMutation.mutate();
+        }} />
       )}
     </div>
   );

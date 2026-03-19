@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { KeyRound } from 'lucide-react';
 import { otpSchema, OTPFormData } from '@/validations/auth.schema';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,34 +47,31 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-[#03060b] px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mb-6 flex justify-center">
-            <Image
-              src="/images/fazn-light.png"
-              alt="Ultra Logo"
-              width={80}
-              height={80}
-              priority
-            />
+        <div className="mb-10 text-center">
+          <div className="mb-8 flex justify-center">
+            <span className="font-display tracking-[0.4em] text-4xl text-white">
+              FAZN
+              <span className="text-[#00FFB2]">.</span>
+            </span>
           </div>
-          <h1 className="mb-2 text-3xl font-bold text-black">Verify Your Email</h1>
-          <p className="text-gray-500">
+          <h1 className="mb-3 text-3xl font-bold text-white">Verify Your Email</h1>
+          <p className="text-white/50">
             We&apos;ve sent a 6-digit code to
             <br />
-            <span className="font-semibold text-blue-600">{user?.email}</span>
+            <span className="font-bold text-[#00FFB2]">{user?.email}</span>
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label htmlFor="otp" className="mb-2 block text-sm font-semibold text-gray-900">
+            <label htmlFor="otp" className="mb-2 block text-sm font-semibold text-white/70">
               Verification Code
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <KeyRound className="h-5 w-5 text-gray-400" />
+                <KeyRound className="h-5 w-5 text-white/40" />
               </div>
               <input
                 {...register('otp')}
@@ -84,40 +80,41 @@ export default function VerifyEmailPage() {
                 inputMode="numeric"
                 maxLength={6}
                 placeholder="Enter 6-digit code"
-                className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-base font-medium text-black placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-base font-medium text-white placeholder:text-white/30 focus:border-[#00FFB2] focus:outline-none focus:ring-2 focus:ring-[#00FFB2]/50 transition-all text-center tracking-widest"
               />
             </div>
             {errors.otp && (
-              <p className="mt-1.5 ml-1 text-sm font-medium text-red-500">{errors.otp.message}</p>
+              <p className="mt-2 ml-1 text-sm font-medium text-[#FF6B6B]">{errors.otp.message}</p>
             )}
           </div>
 
           <button
             type="submit"
             disabled={isVerifyOTPLoading}
-            className="h-14 w-full rounded-2xl bg-blue-600 text-base font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="h-14 w-full rounded-2xl text-base font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            style={{ background: '#00FFB2', color: '#05070b' }}
           >
             {isVerifyOTPLoading ? 'Verifying...' : 'Verify Email'}
           </button>
 
           <div className="text-center">
-            <span className="text-sm text-gray-500">Didn&apos;t receive the code? </span>
+            <span className="text-sm text-white/50">Didn&apos;t receive the code? </span>
             <button
               type="button"
               onClick={handleResend}
-              disabled={!canResend}
-              className={`text-sm font-semibold ${
-                canResend ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'
+              disabled={!canResend || isResendOTPLoading}
+              className={`text-sm font-bold transition-colors ${
+                canResend ? 'text-[#00FFB2] hover:text-[#00FFB2]/80' : 'text-white/30'
               }`}
             >
-              {canResend ? 'Resend' : `Resend in ${countdown}s`}
+              {isResendOTPLoading ? 'Sending...' : canResend ? 'Resend' : `Resend in ${countdown}s`}
             </button>
           </div>
 
           <button
             type="button"
             onClick={() => router.push('/sign-in')}
-            className="mt-4 h-14 w-full rounded-2xl border border-blue-600 bg-blue-50 text-base font-semibold text-blue-600 transition-colors hover:bg-blue-100"
+            className="mt-4 h-14 w-full rounded-2xl border border-white/10 bg-white/5 text-base font-bold text-white transition-all hover:bg-white/10"
           >
             Go to Sign In
           </button>
