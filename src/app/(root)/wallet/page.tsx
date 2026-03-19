@@ -7,6 +7,9 @@ import { useWallet } from '@/hooks/useWallet';
 import { BalanceCard } from '@/components/wallet/BalanceCard';
 import { FilterChips } from '@/components/wallet/FilterChips';
 import { TransactionItem } from '@/components/wallet/TransactionItem';
+import { WalletBalanceChart } from '@/components/charts/WalletBalanceChart';
+import { TransactionAnalyticsChart } from '@/components/charts/TransactionAnalyticsChart';
+import { EarningsBreakdownChart } from '@/components/charts/EarningsBreakdownChart';
 
 export default function WalletPage() {
   const router = useRouter();
@@ -59,6 +62,19 @@ export default function WalletPage() {
             onDeposit={() => {}}
             onWithdraw={() => {}}
           />
+
+          {/* Charts Section */}
+          <div className="mt-6 px-4 lg:px-0 space-y-4">
+            <WalletBalanceChart 
+              transactions={transactions}
+              currentBalance={wallet?.currencies?.find((c) => c.code === 'NGN')?.balance || 0}
+            />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <TransactionAnalyticsChart transactions={transactions} />
+              <EarningsBreakdownChart transactions={transactions} />
+            </div>
+          </div>
 
           {/* Transactions */}
           <div className="mt-6 px-4 lg:px-0">

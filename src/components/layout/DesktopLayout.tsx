@@ -1,16 +1,14 @@
 'use client';
 
 import { DesktopSidebar } from './DesktopSidebar';
-import { TopBar } from './TopBar';
 
 export function DesktopLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen" style={{ background: 'var(--ultra-bg)' }}>
+    <div className="min-h-screen bg-[#03060b]">
       <DesktopSidebar />
       
       {/* Main Content Area */}
-      <div className="lg:pl-64">
-        <TopBar />
+      <div className="pl-64">
         <main className="min-h-screen">
           <div className="max-w-7xl mx-auto px-6 py-6">
             {children}

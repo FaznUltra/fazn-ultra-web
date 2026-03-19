@@ -8,12 +8,17 @@ import { useUser } from '@/hooks/useUser';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { StatsGrid } from '@/components/profile/StatsGrid';
 import { MenuItem } from '@/components/profile/MenuItem';
+import { WinLossChart } from '@/components/charts/WinLossChart';
+import { PerformanceTrendChart } from '@/components/charts/PerformanceTrendChart';
+import { GamePerformanceChart } from '@/components/charts/GamePerformanceChart';
+import { useChallengeHistory } from '@/hooks/useChallenges';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { profile, isProfileLoading, refetch } = useUser(user?._id);
   const [refreshing, setRefreshing] = useState(false);
+  const { data: historyData } = useChallengeHistory({ limit: 100 });
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -64,6 +69,26 @@ export default function ProfilePage() {
         draws={displayProfile?.stats?.draws || 0}
         totalEarnings={displayProfile?.stats?.totalEarnings || 0}
       />
+
+      {/* Performance Charts */}
+      <div className="px-4 mt-6 space-y-4">
+        <WinLossChart
+          wins={displayProfile?.stats?.wins || 0}
+          losses={displayProfile?.stats?.losses || 0}
+          draws={displayProfile?.stats?.draws || 0}
+        />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PerformanceTrendChart 
+            challengeHistory={historyData?.data?.challenges || []}
+            userId={user?._id}
+          />
+          <GamePerformanceChart 
+            challengeHistory={historyData?.data?.challenges || []}
+            userId={user?._id}
+          />
+        </div>
+      </div>
 
       {/* Menu Items */}
       <div className="px-4 mt-6 space-y-3">

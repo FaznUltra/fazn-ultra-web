@@ -154,6 +154,7 @@ export default function HelpSupportPage() {
             })}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ import { Home, Trophy, Plus, Users, User, Wallet, Bell, HelpCircle, History, Log
 import { useNotifications } from '@/hooks/useNotifications';
 import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/hooks/useAuth';
+import { useChallengeHistory } from '@/hooks/useChallenges';
+import { MiniPerformanceWidget } from '@/components/charts/MiniPerformanceWidget';
 
 const navItems = [
   { name: 'Home', href: '/', icon: Home },
@@ -22,7 +24,8 @@ export function DesktopSidebar() {
   const pathname = usePathname();
   const { unreadCount } = useNotifications();
   const { wallet } = useWallet();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { data: historyData } = useChallengeHistory({ limit: 50 });
 
   const balance = wallet?.currencies?.find((c) => c.code === 'NGN')?.balance || 0;
 
@@ -51,6 +54,12 @@ export function DesktopSidebar() {
           </div>
           <span className="text-sm font-bold text-[#00FFB2]">₦{balance.toLocaleString()}</span>
         </Link>
+        
+        {/* Mini Performance Widget */}
+        <MiniPerformanceWidget 
+          challengeHistory={historyData?.data?.challenges || []}
+          userId={user?._id}
+        />
       </div>
 
       {/* Navigation */}

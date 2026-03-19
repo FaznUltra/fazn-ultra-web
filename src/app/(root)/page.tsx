@@ -3,13 +3,17 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useHomeScreenData } from '@/hooks/useLeaderboard';
-import { useChallenges } from '@/hooks/useChallenges';
+import { useChallenges, useChallengeHistory } from '@/hooks/useChallenges';
 import { Trophy, TrendingUp, Zap, Eye, Swords, Users, ArrowRight, Flame, Star, Crown, Gamepad2, Target, TrendingDown, Clock, Award, User } from 'lucide-react';
+import { QuickStatsChart } from '@/components/charts/QuickStatsChart';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HomePage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { data: homeData, isLoading, error } = useHomeScreenData();
   const { stats } = useChallenges();
+  const { data: historyData } = useChallengeHistory({ limit: 50 });
 
   if (isLoading) {
     return (
@@ -121,15 +125,21 @@ export default function HomePage() {
           ))}
         </section>
 
+        {/* Quick Stats Chart */}
+        <QuickStatsChart 
+          challengeHistory={historyData?.data?.challenges || []}
+          userId={user?._id}
+        />
+
         <section className="grid gap-4 md:grid-cols-[2fr,1.2fr]">
           {/* Community Feed */}
           <div className="rounded-3xl border border-white/5 bg-[#080C14] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex-1 min-w-0">
                 <p className="text-xs uppercase tracking-[0.3em] text-white/60">Live Community Buzz</p>
-                <h2 className="text-lg font-semibold">Friends, rivals & witnesses in motion</h2>
+                <h2 className="text-base md:text-lg font-semibold break-words">Friends, rivals & witnesses in motion</h2>
               </div>
-              <Link href="/friends" className="text-xs font-semibold text-[#00FFB2]">Find Friends</Link>
+              <Link href="/friends" className="text-xs font-semibold text-[#00FFB2] whitespace-nowrap flex-shrink-0">Find Friends</Link>
             </div>
             <div className="space-y-3">
               {communityFeed.length > 0 ? (
