@@ -46,40 +46,51 @@ export default function HelpSupportPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const getStatusStyle = (status: string): { bg: string; color: string } => {
+    switch (status) {
+      case 'open': return { bg: '#FFF7ED', color: '#EA580C' };
+      case 'in_progress': return { bg: '#EEF2FF', color: '#4F46E5' };
+      case 'resolved': return { bg: '#ECFDF5', color: '#059669' };
+      case 'closed': return { bg: '#F1F5F9', color: '#64748B' };
+      default: return { bg: '#F1F5F9', color: '#64748B' };
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between h-14 px-4">
-          <button
-            onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-900" />
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
+        <div className="flex items-center justify-between h-12 px-4">
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="h-5 w-5" style={{ color: 'var(--ultra-text)' }} />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Help & Support</h1>
+          <h1 className="text-base font-bold" style={{ color: 'var(--ultra-text)' }}>Help & Support</h1>
           <button
             onClick={() => router.push('/create-support-ticket')}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl"
+            style={{ background: 'var(--ultra-primary)', color: 'white' }}
           >
-            <Plus className="h-6 w-6 text-blue-600" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>
 
       <div className="p-4">
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          <div className="flex justify-center py-16">
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
           </div>
         ) : tickets.length === 0 ? (
-          <div className="text-center py-12">
-            <HelpCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-lg font-semibold text-gray-900 mb-2">No Support Tickets</p>
-            <p className="text-gray-500 mb-6">Create a ticket if you need help</p>
+          <div className="text-center py-16">
+            <div className="h-12 w-12 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'var(--ultra-primary-light)' }}>
+              <HelpCircle className="h-5 w-5" style={{ color: 'var(--ultra-primary)' }} />
+            </div>
+            <p className="text-sm font-bold mb-1" style={{ color: 'var(--ultra-text)' }}>No Support Tickets</p>
+            <p className="text-xs mb-4" style={{ color: 'var(--ultra-text-muted)' }}>Create a ticket if you need help</p>
             <button
               onClick={() => router.push('/create-support-ticket')}
-              className="px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              className="px-6 py-2.5 text-white rounded-xl text-sm font-semibold transition-colors"
+              style={{ background: 'var(--ultra-primary)' }}
             >
               Create Ticket
             </button>
@@ -88,43 +99,43 @@ export default function HelpSupportPage() {
           <div className="space-y-3">
             {tickets.map((ticket: SupportTicket) => {
               const Icon = getCategoryIcon(ticket.category);
+              const statusStyle = getStatusStyle(ticket.status);
               return (
                 <button
                   key={ticket._id}
                   onClick={() => router.push(`/support/${ticket._id}`)}
-                  className="w-full bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow text-left"
+                  className="w-full bg-white rounded-2xl p-4 transition-all text-left"
+                  style={{ boxShadow: 'var(--ultra-card-shadow)' }}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
-                      <Icon className="h-5 w-5 text-blue-600" />
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ultra-primary-light)' }}>
+                      <Icon className="h-4 w-4" style={{ color: 'var(--ultra-primary)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[15px] font-bold text-gray-900 truncate mb-0.5">
+                      <p className="text-sm font-bold truncate mb-0.5" style={{ color: 'var(--ultra-text)' }}>
                         {ticket.subject}
                       </p>
-                      <p className="text-[11px] font-semibold text-gray-500 uppercase">
+                      <p className="text-[10px] font-semibold uppercase" style={{ color: 'var(--ultra-text-muted)' }}>
                         {ticket.category}
                       </p>
                     </div>
-                    <div className={`px-2.5 py-1 rounded-xl ${getStatusColor(ticket.status)}`}>
-                      <p className="text-[10px] font-bold text-white uppercase">
+                    <div className="px-2 py-0.5 rounded-lg" style={{ background: statusStyle.bg }}>
+                      <p className="text-[10px] font-bold uppercase" style={{ color: statusStyle.color }}>
                         {ticket.status.replace('_', ' ')}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                  <p className="text-xs line-clamp-2 mb-2" style={{ color: 'var(--ultra-text-secondary)' }}>
                     {ticket.messages[ticket.messages.length - 1]?.message}
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <MessageCircle className="h-3.5 w-3.5" />
-                      <span>
-                        {ticket.messages.length} {ticket.messages.length === 1 ? 'message' : 'messages'}
-                      </span>
+                    <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--ultra-text-muted)' }}>
+                      <MessageCircle className="h-3 w-3" />
+                      <span>{ticket.messages.length} {ticket.messages.length === 1 ? 'message' : 'messages'}</span>
                     </div>
-                    <p className="text-xs text-gray-500">{formatDate(ticket.updatedAt)}</p>
+                    <p className="text-[10px]" style={{ color: 'var(--ultra-text-muted)' }}>{formatDate(ticket.updatedAt)}</p>
                   </div>
                 </button>
               );

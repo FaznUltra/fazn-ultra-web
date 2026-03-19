@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, Filter } from 'lucide-react';
 import { 
   usePublicChallenges, 
   useInvitedChallenges, 
@@ -141,99 +142,105 @@ export default function ChallengesPage() {
     { key: 'my-witnessing', label: 'My Witnessing' },
   ];
 
+  const majorTabs: { key: MajorTabType; label: string; description: string }[] = [
+    { key: 'challenges', label: 'Challenges', description: 'Create, accept, and manage your wagers' },
+    { key: 'witnessing', label: 'Witnessing', description: 'Earn by keeping matches honest' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between h-14 px-4">
-          <h1 className="text-lg font-bold text-gray-900">Challenges</h1>
-          <button
-            onClick={() => router.push('/create-challenge')}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-6 w-6 text-white" />
-          </button>
-        </div>
-
-        {/* Major Tabs */}
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setMajorTab('challenges')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-              majorTab === 'challenges'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500'
-            }`}
-          >
-            Challenges
-          </button>
-          <button
-            onClick={() => setMajorTab('witnessing')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-              majorTab === 'witnessing'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500'
-            }`}
-          >
-            Witnessing
-          </button>
-        </div>
-
-        {/* Sub Tabs */}
-        {majorTab === 'challenges' && (
-          <div className="flex gap-2 px-4 py-3 overflow-x-auto">
-            {challengeTabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => handleChallengeTabChange(tab.key)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                  challengeTab === tab.key
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {majorTab === 'witnessing' && (
-          <div className="flex gap-2 px-4 py-3 overflow-x-auto">
-            {witnessingTabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => handleWitnessingTabChange(tab.key)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                  witnessingTab === tab.key
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          </div>
-        ) : challenges.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-sm">{getEmptyMessage()}</p>
-          </div>
-        ) : (
+    <div className="min-h-screen bg-[#03060b] text-white">
+      <div className="max-w-6xl mx-auto px-4 py-6 pb-24 space-y-6">
+        {/* Hero */}
+        <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-[#131A31] via-[#0B0F1B] to-[#05070C] p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-3">
-            {challenges.map((challenge) => (
-              <ChallengeCard key={challenge._id} challenge={challenge} />
+            <p className="text-xs uppercase tracking-[0.4em] text-[#00FFB2]">FAZN Arena</p>
+            <h1 className="text-3xl font-bold">Challenges</h1>
+            <p className="text-sm text-white/70 max-w-xl">
+              Jump into public standoffs, defend your invitations, or witness the hottest wagers on the platform.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/create-challenge" className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold" style={{ background: '#00FFB2', color: '#05070b' }}>
+                Drop a Challenge
+                <Plus className="h-4 w-4" />
+              </Link>
+              <button className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold border border-white/10 text-white/90">
+                <Filter className="h-4 w-4" />
+                Smart Filters
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+            {majorTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setMajorTab(tab.key)}
+                className="rounded-2xl border border-white/5 p-4 text-left transition-all"
+                style={{ background: majorTab === tab.key ? 'rgba(0,255,178,0.08)' : 'rgba(255,255,255,0.03)' }}
+              >
+                <p className="text-sm font-semibold">{tab.label}</p>
+                <p className="text-[11px] text-white/60 mt-1">{tab.description}</p>
+                {majorTab === tab.key && <div className="mt-3 h-1 rounded-full" style={{ background: '#00FFB2' }} />}
+              </button>
             ))}
           </div>
-        )}
+        </section>
+
+        {/* Sub tabs */}
+        <div className="rounded-3xl border border-white/5 bg-[#080C14] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-white/60">{majorTab === 'challenges' ? 'Challenge Categories' : 'Witnessing Pools'}</p>
+              <p className="text-base font-semibold">{majorTab === 'challenges' ? 'Pick your battleground' : 'Select witnessing mode'}</p>
+            </div>
+            <p className="text-xs text-white/60">{challenges.length} showing</p>
+          </div>
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {(majorTab === 'challenges' ? challengeTabs : witnessingTabs).map((tab) => {
+              const isActive = majorTab === 'challenges' ? challengeTab === tab.key : witnessingTab === tab.key;
+              const onClick = () =>
+                majorTab === 'challenges'
+                  ? handleChallengeTabChange(tab.key as ChallengeTabType)
+                  : handleWitnessingTabChange(tab.key as WitnessingTabType);
+              return (
+                <button
+                  key={tab.key}
+                  onClick={onClick}
+                  className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all"
+                  style={{
+                    background: isActive ? '#00FFB2' : 'rgba(255,255,255,0.06)',
+                    color: isActive ? '#05070b' : 'white',
+                    border: isActive ? '1px solid #00FFB2' : '1px solid transparent',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Content */}
+        <section className="rounded-3xl border border-white/5 bg-[#080C14] p-5 min-h-[300px]">
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-white/10" style={{ borderTopColor: '#00FFB2' }} />
+            </div>
+          ) : challenges.length === 0 ? (
+            <div className="text-center py-16 space-y-3">
+              <div className="mx-auto h-14 w-14 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(0,255,178,0.08)', color: '#00FFB2' }}>
+                <Plus className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold">{getEmptyMessage()}</p>
+              <p className="text-xs text-white/60">Try switching tabs or create your own challenge.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {challenges.map((challenge) => (
+                <ChallengeCard key={challenge._id} challenge={challenge} />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

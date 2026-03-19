@@ -54,10 +54,11 @@ export default function SpectatePage() {
         limit: 20, 
         page 
       });
-      setLiveMatches(response.data.matches);
-      setTotalPages(response.data.pagination.pages);
+      setLiveMatches(response.data.challenges || []);
+      setTotalPages(response.data.pagination?.pages || 1);
       setLoading(false);
     } catch (error: any) {
+      console.error('Failed to load live matches:', error);
       toast.error('Failed to load live matches');
       setLoading(false);
     }
@@ -76,170 +77,161 @@ export default function SpectatePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="px-4 py-4 pb-20">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-            <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+      <div className="mb-4">
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#FEF2F2' }}>
+            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Live Matches</h1>
+          <h1 className="text-lg font-bold" style={{ color: 'var(--ultra-text)' }}>Live Matches</h1>
         </div>
-        <p className="text-gray-600 text-sm sm:text-base">
-          Watch ongoing matches and join the community chat
+        <p className="text-xs" style={{ color: 'var(--ultra-text-muted)' }}>
+          Watch ongoing matches and join the community
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-          <div className="flex items-center gap-2 mb-1">
-            <Eye className="w-4 h-4 text-purple-600" />
-            <p className="text-xs font-medium text-purple-700">Live Now</p>
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="bg-white rounded-xl p-3" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <div className="flex items-center gap-1 mb-0.5">
+            <Eye className="w-3 h-3" style={{ color: 'var(--ultra-primary)' }} />
+            <p className="text-[10px] font-medium" style={{ color: 'var(--ultra-text-muted)' }}>Live Now</p>
           </div>
-          <p className="text-2xl font-bold text-purple-900">{liveMatches.length}</p>
+          <p className="text-lg font-bold" style={{ color: 'var(--ultra-text)' }}>{liveMatches.length}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-          <div className="flex items-center gap-2 mb-1">
-            <Users className="w-4 h-4 text-blue-600" />
-            <p className="text-xs font-medium text-blue-700">Total Viewers</p>
+        <div className="bg-white rounded-xl p-3" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <div className="flex items-center gap-1 mb-0.5">
+            <Users className="w-3 h-3" style={{ color: 'var(--ultra-primary)' }} />
+            <p className="text-[10px] font-medium" style={{ color: 'var(--ultra-text-muted)' }}>Viewers</p>
           </div>
-          <p className="text-2xl font-bold text-blue-900">
+          <p className="text-lg font-bold" style={{ color: 'var(--ultra-text)' }}>
             {liveMatches.reduce((sum, match) => sum + match.spectating.spectatorCount, 0)}
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 col-span-2 sm:col-span-1">
-          <div className="flex items-center gap-2 mb-1">
-            <TrendingUp className="w-4 h-4 text-green-600" />
-            <p className="text-xs font-medium text-green-700">Total Stakes</p>
+        <div className="bg-white rounded-xl p-3" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <div className="flex items-center gap-1 mb-0.5">
+            <TrendingUp className="w-3 h-3" style={{ color: '#059669' }} />
+            <p className="text-[10px] font-medium" style={{ color: 'var(--ultra-text-muted)' }}>Stakes</p>
           </div>
-          <p className="text-2xl font-bold text-green-900">
+          <p className="text-lg font-bold" style={{ color: '#059669' }}>
             ₦{liveMatches.reduce((sum, match) => sum + match.totalPot, 0).toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* Matches Grid */}
+      {/* Matches */}
       {liveMatches.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed">
-          <Eye className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-gray-700 mb-1">No Live Matches</h3>
-          <p className="text-sm text-gray-500">Check back soon for exciting matches!</p>
+        <div className="text-center py-16">
+          <div className="h-12 w-12 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'var(--ultra-primary-light)' }}>
+            <Eye className="h-5 w-5" style={{ color: 'var(--ultra-primary)' }} />
+          </div>
+          <p className="text-sm font-bold mb-1" style={{ color: 'var(--ultra-text)' }}>No Live Matches</p>
+          <p className="text-xs" style={{ color: 'var(--ultra-text-muted)' }}>Check back soon for exciting matches!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-3">
           {liveMatches.map((match) => (
             <div 
               key={match._id} 
-              className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white"
+              className="bg-white rounded-2xl overflow-hidden transition-all"
+              style={{ boxShadow: 'var(--ultra-card-shadow)' }}
             >
-              {/* Header */}
-              <div className="bg-gradient-to-r from-red-500 to-red-600 px-4 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-white">
-                    {formatGameName(match.gameName)}
-                  </span>
-                  <div className="flex items-center gap-1.5 bg-white/20 px-2 py-1 rounded-full">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    <span className="text-xs text-white font-bold">LIVE</span>
-                  </div>
+              {/* Card Header */}
+              <div className="px-4 py-2 flex items-center justify-between" style={{ background: 'var(--ultra-primary)' }}>
+                <span className="text-[11px] font-semibold text-white">
+                  {formatGameName(match.gameName)}
+                </span>
+                <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                  <span className="text-[10px] text-white font-bold">LIVE</span>
                 </div>
               </div>
 
               {/* Players */}
               <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <div className="text-center flex-1">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full mx-auto mb-2 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl mx-auto mb-1.5 flex items-center justify-center" style={{ background: 'var(--ultra-primary-light)' }}>
                       {match.creator.profileImage ? (
                         <img 
                           src={match.creator.profileImage} 
                           alt={match.creator.displayName}
-                          className="w-full h-full rounded-full object-cover"
+                          className="w-full h-full rounded-xl object-cover"
                         />
                       ) : (
-                        <span className="text-lg font-bold text-blue-600">
+                        <span className="text-sm font-bold" style={{ color: 'var(--ultra-primary)' }}>
                           {match.creator.displayName[0]}
                         </span>
                       )}
                     </div>
-                    <p className="font-semibold text-sm truncate">
+                    <p className="font-semibold text-xs truncate" style={{ color: 'var(--ultra-text)' }}>
                       {match.creator.displayName}
                     </p>
-                    <span className="text-xs text-gray-500">Creator</span>
+                    <span className="text-[10px]" style={{ color: 'var(--ultra-text-muted)' }}>Creator</span>
                   </div>
 
-                  <div className="px-4">
-                    <span className="text-xl font-bold text-gray-400">VS</span>
+                  <div className="px-3">
+                    <span className="text-sm font-bold" style={{ color: 'var(--ultra-text-muted)' }}>VS</span>
                   </div>
 
                   <div className="text-center flex-1">
-                    <div className="w-12 h-12 bg-red-100 rounded-full mx-auto mb-2 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl mx-auto mb-1.5 flex items-center justify-center" style={{ background: '#FEF2F2' }}>
                       {match.acceptor.profileImage ? (
                         <img 
                           src={match.acceptor.profileImage} 
                           alt={match.acceptor.displayName}
-                          className="w-full h-full rounded-full object-cover"
+                          className="w-full h-full rounded-xl object-cover"
                         />
                       ) : (
-                        <span className="text-lg font-bold text-red-600">
+                        <span className="text-sm font-bold" style={{ color: '#DC2626' }}>
                           {match.acceptor.displayName[0]}
                         </span>
                       )}
                     </div>
-                    <p className="font-semibold text-sm truncate">
+                    <p className="font-semibold text-xs truncate" style={{ color: 'var(--ultra-text)' }}>
                       {match.acceptor.displayName}
                     </p>
-                    <span className="text-xs text-gray-500">Opponent</span>
+                    <span className="text-[10px]" style={{ color: 'var(--ultra-text-muted)' }}>Opponent</span>
                   </div>
                 </div>
 
                 {/* Match Info */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">💰 Total Pot</span>
-                    <span className="font-bold text-green-600">
-                      ₦{match.totalPot.toLocaleString()}
-                    </span>
+                <div className="rounded-xl p-2.5 space-y-1.5 mb-3" style={{ background: 'var(--ultra-bg)' }}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span style={{ color: 'var(--ultra-text-secondary)' }}>Total Pot</span>
+                    <span className="font-bold" style={{ color: '#059669' }}>₦{match.totalPot.toLocaleString()}</span>
                   </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">👁️ Watching</span>
-                    <span className="font-semibold">
-                      {match.spectating.spectatorCount} spectators
-                    </span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span style={{ color: 'var(--ultra-text-secondary)' }}>Watching</span>
+                    <span className="font-semibold" style={{ color: 'var(--ultra-text)' }}>{match.spectating.spectatorCount} spectators</span>
                   </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">⏱️ Duration</span>
-                    <span className="font-semibold">
-                      {getMatchDuration(match.matchStartedAt)}
-                    </span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span style={{ color: 'var(--ultra-text-secondary)' }}>Duration</span>
+                    <span className="font-semibold" style={{ color: 'var(--ultra-text)' }}>{getMatchDuration(match.matchStartedAt)}</span>
                   </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">👨‍⚖️ Witness</span>
-                    <span className="font-semibold text-xs truncate max-w-[120px]">
-                      {match.witness.displayName}
-                    </span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span style={{ color: 'var(--ultra-text-secondary)' }}>Witness</span>
+                    <span className="font-semibold text-xs truncate max-w-[120px]" style={{ color: 'var(--ultra-text)' }}>{match.witness.displayName}</span>
                   </div>
                 </div>
 
                 {/* Watch Button */}
                 <button
                   onClick={() => router.push(`/challenges/${match._id}`)}
-                  className="w-full h-10 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 text-white rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-1.5"
+                  style={{ background: 'var(--ultra-primary)' }}
                 >
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-3.5 h-3.5" />
                   Watch Match
                 </button>
               </div>
@@ -250,21 +242,23 @@ export default function SpectatePage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
+        <div className="flex items-center justify-center gap-2 mt-5">
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-colors"
+            style={{ background: 'var(--ultra-primary-light)', color: 'var(--ultra-primary)' }}
           >
             Previous
           </button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages}
+          <span className="text-xs" style={{ color: 'var(--ultra-text-muted)' }}>
+            {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-4 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold disabled:opacity-40 transition-colors"
+            style={{ background: 'var(--ultra-primary-light)', color: 'var(--ultra-primary)' }}
           >
             Next
           </button>

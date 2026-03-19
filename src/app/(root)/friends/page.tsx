@@ -47,77 +47,55 @@ export default function FriendsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between h-14 px-4">
-          <h1 className="text-lg font-bold text-gray-900">Friends</h1>
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
+        <div className="flex items-center justify-between h-12 px-4">
+          <h1 className="text-base font-bold" style={{ color: 'var(--ultra-text)' }}>Friends</h1>
           <button
             onClick={() => router.push('/search-users')}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl transition-colors"
+            style={{ background: 'var(--ultra-primary)', color: 'white' }}
           >
-            <UserPlus className="h-5 w-5 text-gray-700" />
+            <UserPlus className="h-4 w-4" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab('friends')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors relative ${
-              activeTab === 'friends'
-                ? 'text-blue-600'
-                : 'text-gray-500'
-            }`}
-          >
-            Friends
-            {activeTab === 'friends' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('requests')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors relative ${
-              activeTab === 'requests'
-                ? 'text-blue-600'
-                : 'text-gray-500'
-            }`}
-          >
-            Requests
-            {pendingRequests.length > 0 && (
-              <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-                {pendingRequests.length}
-              </span>
-            )}
-            {activeTab === 'requests' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('sent')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors relative ${
-              activeTab === 'sent'
-                ? 'text-blue-600'
-                : 'text-gray-500'
-            }`}
-          >
-            Sent
-            {activeTab === 'sent' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-            )}
-          </button>
+        <div className="flex" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
+          {(['friends', 'requests', 'sent'] as TabType[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="flex-1 py-2.5 text-sm font-semibold transition-colors capitalize relative"
+              style={{
+                color: activeTab === tab ? 'var(--ultra-primary)' : 'var(--ultra-text-muted)',
+                borderBottom: activeTab === tab ? '2px solid var(--ultra-primary)' : '2px solid transparent',
+              }}
+            >
+              {tab}
+              {tab === 'requests' && pendingRequests.length > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white rounded-full" style={{ background: '#DC2626' }}>
+                  {pendingRequests.length}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4">
         {getCurrentLoading() ? (
-          <div className="flex justify-center py-12">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          <div className="flex justify-center py-16">
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
           </div>
         ) : getCurrentData().length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">
+          <div className="text-center py-16">
+            <div className="h-12 w-12 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'var(--ultra-primary-light)' }}>
+              <Search className="h-5 w-5" style={{ color: 'var(--ultra-primary)' }} />
+            </div>
+            <p className="text-sm" style={{ color: 'var(--ultra-text-secondary)' }}>
               {activeTab === 'friends' && 'No friends yet'}
               {activeTab === 'requests' && 'No pending requests'}
               {activeTab === 'sent' && 'No sent requests'}

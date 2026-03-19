@@ -20,50 +20,50 @@ export function BalanceCard({
   onWithdraw,
 }: BalanceCardProps) {
   return (
-    <div className="bg-gradient-to-br from-blue-600 to-purple-600 mx-4 mt-4 rounded-3xl p-6 shadow-lg">
-      <div className="mb-6">
-        <p className="text-sm text-white/80 font-medium mb-1">Available Balance</p>
-        <h2 className="text-4xl font-bold text-white">₦{balance.toLocaleString()}</h2>
+    <div className="mx-4 mt-4 rounded-2xl p-5" style={{ background: 'var(--ultra-primary)' }}>
+      <div className="mb-5">
+        <p className="text-xs text-white/70 font-medium mb-1">Available Balance</p>
+        <h2 className="text-3xl font-bold text-white">₦{balance.toLocaleString()}</h2>
       </div>
 
-      <div className="flex gap-3 mb-6">
+      <div className="flex gap-2.5 mb-5">
         <button
           onClick={onDeposit}
-          className="flex-1 bg-white/20 backdrop-blur-sm rounded-2xl py-3 flex items-center justify-center gap-2 active:bg-white/30 transition-colors"
+          className="flex-1 bg-white/15 backdrop-blur-sm rounded-xl py-2.5 flex items-center justify-center gap-1.5 active:bg-white/25 transition-colors"
         >
-          <Plus className="h-5 w-5 text-white" />
-          <span className="text-white font-semibold">Deposit</span>
+          <Plus className="h-4 w-4 text-white" />
+          <span className="text-white text-sm font-semibold">Deposit</span>
         </button>
         <button
           onClick={onWithdraw}
-          className="flex-1 bg-white/20 backdrop-blur-sm rounded-2xl py-3 flex items-center justify-center gap-2 active:bg-white/30 transition-colors"
+          className="flex-1 bg-white/15 backdrop-blur-sm rounded-xl py-2.5 flex items-center justify-center gap-1.5 active:bg-white/25 transition-colors"
         >
-          <ArrowDownToLine className="h-5 w-5 text-white" />
-          <span className="text-white font-semibold">Withdraw</span>
+          <ArrowDownToLine className="h-4 w-4 text-white" />
+          <span className="text-white text-sm font-semibold">Withdraw</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-          <div className="flex items-center gap-1 mb-1">
-            <TrendingUp className="h-3.5 w-3.5 text-green-300" />
-            <p className="text-xs text-white/70">Deposits</p>
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5">
+          <div className="flex items-center gap-1 mb-0.5">
+            <TrendingUp className="h-3 w-3 text-green-300" />
+            <p className="text-[10px] text-white/60">Deposits</p>
           </div>
-          <p className="text-sm font-bold text-white">₦{totalDeposits.toLocaleString()}</p>
+          <p className="text-xs font-bold text-white">₦{totalDeposits.toLocaleString()}</p>
         </div>
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-          <div className="flex items-center gap-1 mb-1">
-            <TrendingDown className="h-3.5 w-3.5 text-red-300" />
-            <p className="text-xs text-white/70">Withdrawals</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5">
+          <div className="flex items-center gap-1 mb-0.5">
+            <TrendingDown className="h-3 w-3 text-red-300" />
+            <p className="text-[10px] text-white/60">Withdrawals</p>
           </div>
-          <p className="text-sm font-bold text-white">₦{totalWithdrawals.toLocaleString()}</p>
+          <p className="text-xs font-bold text-white">₦{totalWithdrawals.toLocaleString()}</p>
         </div>
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-          <div className="flex items-center gap-1 mb-1">
-            <Trophy className="h-3.5 w-3.5 text-yellow-300" />
-            <p className="text-xs text-white/70">Winnings</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5">
+          <div className="flex items-center gap-1 mb-0.5">
+            <Trophy className="h-3 w-3 text-yellow-300" />
+            <p className="text-[10px] text-white/60">Winnings</p>
           </div>
-          <p className="text-sm font-bold text-white">₦{totalWinnings.toLocaleString()}</p>
+          <p className="text-xs font-bold text-white">₦{totalWinnings.toLocaleString()}</p>
         </div>
       </div>
     </div>

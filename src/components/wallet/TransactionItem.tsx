@@ -71,22 +71,22 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+    <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
       <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-full ${getIconBg()} flex items-center justify-center flex-shrink-0`}>
+        <div className={`w-10 h-10 rounded-xl ${getIconBg()} flex items-center justify-center flex-shrink-0`}>
           {getIcon()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{transaction.description}</p>
-          <p className="text-xs text-gray-500">
-            {formatDate(transaction.createdAt)} • {formatTime(transaction.createdAt)}
+          <p className="text-sm font-semibold truncate" style={{ color: 'var(--ultra-text)' }}>{transaction.description}</p>
+          <p className="text-[11px]" style={{ color: 'var(--ultra-text-muted)' }}>
+            {formatDate(transaction.createdAt)} · {formatTime(transaction.createdAt)}
           </p>
         </div>
-        <div className="text-right">
-          <p className={`text-base font-bold ${getAmountColor()}`}>
+        <div className="text-right flex-shrink-0">
+          <p className={`text-sm font-bold ${getAmountColor()}`}>
             {getAmountPrefix()}₦{transaction.amount.toLocaleString()}
           </p>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
             transaction.status === 'COMPLETED' ? 'bg-green-50 text-green-700' :
             transaction.status === 'PENDING' ? 'bg-yellow-50 text-yellow-700' :
             transaction.status === 'FAILED' ? 'bg-red-50 text-red-700' :

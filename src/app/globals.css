@@ -80,6 +80,20 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Ultra Platform Design System */
+  --ultra-primary: #4F46E5;
+  --ultra-primary-dark: #4338CA;
+  --ultra-primary-light: #EEF2FF;
+  --ultra-accent: #F59E0B;
+  --ultra-accent-light: #FEF3C7;
+  --ultra-bg: #F8FAFC;
+  --ultra-text: #0F172A;
+  --ultra-text-secondary: #475569;
+  --ultra-text-muted: #94A3B8;
+  --ultra-border: #E2E8F0;
+  --ultra-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --ultra-nav: #1E293B;
 }
 
 .dark {

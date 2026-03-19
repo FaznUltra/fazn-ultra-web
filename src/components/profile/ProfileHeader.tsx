@@ -23,42 +23,44 @@ export function ProfileHeader({
   onEditPress,
 }: ProfileHeaderProps) {
   return (
-    <div className="bg-gray-50 py-8 px-5 flex flex-col items-center">
-      <div className="relative mb-4">
+    <div className="bg-white py-6 px-5 flex flex-col items-center">
+      <div className="relative mb-3">
         {profileImage ? (
           <Image
             src={profileImage}
             alt={displayName}
-            width={100}
-            height={100}
-            className="rounded-full border-3 border-blue-600"
+            width={80}
+            height={80}
+            className="rounded-full"
+            style={{ border: '3px solid var(--ultra-primary)' }}
           />
         ) : (
-          <div className="w-[100px] h-[100px] rounded-full bg-white border-3 border-blue-600 flex items-center justify-center">
-            <User className="h-12 w-12 text-blue-600" />
+          <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center" style={{ border: '3px solid var(--ultra-primary)' }}>
+            <User className="h-9 w-9" style={{ color: 'var(--ultra-primary)' }} />
           </div>
         )}
         {isVerified && (
-          <div className="absolute bottom-0 right-0 bg-gray-50 rounded-full p-0.5">
-            <CheckCircle className="h-6 w-6 text-green-500 fill-current" />
+          <div className="absolute bottom-0 right-0 bg-white rounded-full p-0.5">
+            <CheckCircle className="h-5 w-5 text-green-500 fill-current" />
           </div>
         )}
       </div>
 
-      <div className="text-center mb-5">
-        <h1 className="text-2xl font-bold text-black mb-1">
+      <div className="text-center mb-4">
+        <h1 className="text-lg font-bold mb-0.5" style={{ color: 'var(--ultra-text)' }}>
           {firstName} {lastName}
         </h1>
-        <p className="text-base text-gray-500 font-medium mb-1">{displayName}</p>
-        <p className="text-sm text-gray-400">{email}</p>
+        <p className="text-sm font-medium mb-0.5" style={{ color: 'var(--ultra-text-secondary)' }}>{displayName}</p>
+        <p className="text-xs" style={{ color: 'var(--ultra-text-muted)' }}>{email}</p>
       </div>
 
       <button
         onClick={onEditPress}
-        className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-50 rounded-full"
+        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold"
+        style={{ background: 'var(--ultra-primary-light)', color: 'var(--ultra-primary)' }}
       >
-        <Edit className="h-[18px] w-[18px] text-blue-600" />
-        <span className="text-[15px] font-semibold text-blue-600">Edit Profile</span>
+        <Edit className="h-3.5 w-3.5" />
+        Edit Profile
       </button>
     </div>
   );

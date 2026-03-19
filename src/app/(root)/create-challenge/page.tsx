@@ -101,27 +101,27 @@ export default function CreateChallengePage() {
   const winnerPayout = totalPot * 0.93;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-4 h-14 px-4">
-          <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full">
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
+        <div className="flex items-center gap-3 h-12 px-4">
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="h-5 w-5" style={{ color: 'var(--ultra-text)' }} />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Create Challenge</h1>
+          <h1 className="text-base font-bold" style={{ color: 'var(--ultra-text)' }}>Create Challenge</h1>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-3 sm:p-4 space-y-4 sm:space-y-6 pb-20">
+      <div className="max-w-2xl mx-auto p-4 space-y-4 pb-20">
         {/* Select Game */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Select Game</h2>
+        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ultra-text)' }}>Select Game</h2>
           {gamesLoading ? (
             <div className="flex justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+              <div className="h-7 w-7 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {games.map((game) => (
                 <button
                   key={game.gameName}
@@ -133,17 +133,15 @@ export default function CreateChallengePage() {
                       displayName: game.displayName,
                     })
                   }
-                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-                    selectedGame?.gameName === game.gameName
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
+                  className="p-3 rounded-xl transition-all"
+                  style={{
+                    border: selectedGame?.gameName === game.gameName ? '2px solid var(--ultra-primary)' : '2px solid var(--ultra-border)',
+                    background: selectedGame?.gameName === game.gameName ? 'var(--ultra-primary-light)' : 'white',
+                  }}
                 >
-                  <Trophy className={`h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 ${
-                    selectedGame?.gameName === game.gameName ? 'text-blue-600' : 'text-gray-400'
-                  }`} />
-                  <p className="text-xs sm:text-sm font-semibold text-gray-900 text-center">{game.displayName}</p>
-                  <p className="text-xs text-gray-500 text-center mt-1">{game.platforms[0]}</p>
+                  <Trophy className="h-5 w-5 mx-auto mb-1.5" style={{ color: selectedGame?.gameName === game.gameName ? 'var(--ultra-primary)' : 'var(--ultra-text-muted)' }} />
+                  <p className="text-xs font-semibold text-center" style={{ color: 'var(--ultra-text)' }}>{game.displayName}</p>
+                  <p className="text-[10px] text-center mt-0.5" style={{ color: 'var(--ultra-text-muted)' }}>{game.platforms[0]}</p>
                 </button>
               ))}
             </div>
@@ -151,162 +149,138 @@ export default function CreateChallengePage() {
         </div>
 
         {/* Challenge Type */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Challenge Type</h2>
+        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ultra-text)' }}>Challenge Type</h2>
           <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => setChallengeType('DIRECT')}
-              className={`flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${
-                challengeType === 'DIRECT' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <User className={`h-4 w-4 sm:h-5 sm:w-5 ${challengeType === 'DIRECT' ? 'text-blue-600' : 'text-gray-400'}`} />
-              <span className={`text-xs sm:text-sm font-semibold ${challengeType === 'DIRECT' ? 'text-blue-600' : 'text-gray-600'}`}>
-                Direct
-              </span>
-            </button>
-
-            <button
-              onClick={() => setChallengeType('FRIENDS')}
-              className={`flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${
-                challengeType === 'FRIENDS' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <Users className={`h-4 w-4 sm:h-5 sm:w-5 ${challengeType === 'FRIENDS' ? 'text-blue-600' : 'text-gray-400'}`} />
-              <span className={`text-xs sm:text-sm font-semibold ${challengeType === 'FRIENDS' ? 'text-blue-600' : 'text-gray-600'}`}>
-                Friends
-              </span>
-            </button>
-
-            <button
-              onClick={() => setChallengeType('PUBLIC')}
-              className={`flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg border-2 transition-all ${
-                challengeType === 'PUBLIC' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <Globe className={`h-4 w-4 sm:h-5 sm:w-5 ${challengeType === 'PUBLIC' ? 'text-blue-600' : 'text-gray-400'}`} />
-              <span className={`text-xs sm:text-sm font-semibold ${challengeType === 'PUBLIC' ? 'text-blue-600' : 'text-gray-600'}`}>
-                Public
-              </span>
-            </button>
+            {([
+              { type: 'DIRECT' as ChallengeType, icon: User, label: 'Direct' },
+              { type: 'FRIENDS' as ChallengeType, icon: Users, label: 'Friends' },
+              { type: 'PUBLIC' as ChallengeType, icon: Globe, label: 'Public' },
+            ]).map(({ type, icon: TypeIcon, label }) => (
+              <button
+                key={type}
+                onClick={() => setChallengeType(type)}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+                style={{
+                  border: challengeType === type ? '2px solid var(--ultra-primary)' : '2px solid var(--ultra-border)',
+                  background: challengeType === type ? 'var(--ultra-primary-light)' : 'white',
+                }}
+              >
+                <TypeIcon className="h-4 w-4" style={{ color: challengeType === type ? 'var(--ultra-primary)' : 'var(--ultra-text-muted)' }} />
+                <span className="text-xs font-semibold" style={{ color: challengeType === type ? 'var(--ultra-primary)' : 'var(--ultra-text-secondary)' }}>
+                  {label}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Stake Amount */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Stake Amount (₦)</h2>
+        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ultra-text)' }}>Stake Amount (₦)</h2>
           <input
             type="number"
             value={stakeAmount}
             onChange={(e) => setStakeAmount(e.target.value)}
             placeholder="Enter amount"
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 text-sm rounded-xl focus:outline-none focus:ring-2"
+            style={{ border: '1px solid var(--ultra-border)' } as React.CSSProperties}
           />
           {stake > 0 && (
-            <div className="mt-3 space-y-2">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Total Pot:</span>
-                <span className="font-semibold text-gray-900">₦{totalPot.toLocaleString()}</span>
+            <div className="mt-3 space-y-1.5">
+              <div className="flex justify-between items-center text-xs">
+                <span style={{ color: 'var(--ultra-text-secondary)' }}>Total Pot:</span>
+                <span className="font-semibold" style={{ color: 'var(--ultra-text)' }}>₦{totalPot.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Winner Gets:</span>
-                <span className="font-bold text-green-600">₦{winnerPayout.toLocaleString()}</span>
+              <div className="flex justify-between items-center text-xs">
+                <span style={{ color: 'var(--ultra-text-secondary)' }}>Winner Gets:</span>
+                <span className="font-bold" style={{ color: '#059669' }}>₦{winnerPayout.toLocaleString()}</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Acceptance Deadline */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2">Acceptance Deadline</h2>
-          <p className="text-xs sm:text-sm text-gray-500 mb-3">When should the challenge be accepted by?</p>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600 pointer-events-none" />
-              <input
-                type="datetime-local"
-                value={acceptanceDueDate}
-                onChange={(e) => setAcceptanceDueDate(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
-                className="w-full pl-10 pr-3 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <h2 className="text-sm font-bold mb-1" style={{ color: 'var(--ultra-text)' }}>Acceptance Deadline</h2>
+          <p className="text-[11px] mb-3" style={{ color: 'var(--ultra-text-muted)' }}>When should the challenge be accepted by?</p>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'var(--ultra-primary)' }} />
+            <input
+              type="datetime-local"
+              value={acceptanceDueDate}
+              onChange={(e) => setAcceptanceDueDate(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+              className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl focus:outline-none focus:ring-2"
+              style={{ border: '1px solid var(--ultra-border)' } as React.CSSProperties}
+            />
           </div>
         </div>
 
         {/* Match Start Time */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2">Match Start Time</h2>
-          <p className="text-xs sm:text-sm text-gray-500 mb-3">When will the match begin?</p>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600 pointer-events-none" />
-              <input
-                type="datetime-local"
-                value={matchStartTime}
-                onChange={(e) => setMatchStartTime(e.target.value)}
-                min={acceptanceDueDate}
-                className="w-full pl-10 pr-3 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+          <h2 className="text-sm font-bold mb-1" style={{ color: 'var(--ultra-text)' }}>Match Start Time</h2>
+          <p className="text-[11px] mb-3" style={{ color: 'var(--ultra-text-muted)' }}>When will the match begin?</p>
+          <div className="relative">
+            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'var(--ultra-primary)' }} />
+            <input
+              type="datetime-local"
+              value={matchStartTime}
+              onChange={(e) => setMatchStartTime(e.target.value)}
+              min={acceptanceDueDate}
+              className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl focus:outline-none focus:ring-2"
+              style={{ border: '1px solid var(--ultra-border)' } as React.CSSProperties}
+            />
           </div>
         </div>
 
         {/* Game Options */}
         {selectedGame?.gameType === 'FOOTBALL' && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200">
-            <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Game Options</h2>
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
+            <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ultra-text)' }}>Game Options</h2>
             <div className="space-y-3">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={includeExtraTime}
                   onChange={(e) => setIncludeExtraTime(e.target.checked)}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 rounded focus:ring-2"
+                  style={{ accentColor: 'var(--ultra-primary)' } as React.CSSProperties}
                 />
-                <span className="text-sm sm:text-base text-gray-900">Include Extra Time</span>
+                <span className="text-sm" style={{ color: 'var(--ultra-text)' }}>Include Extra Time</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={includePenalty}
                   onChange={(e) => setIncludePenalty(e.target.checked)}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 rounded focus:ring-2"
+                  style={{ accentColor: 'var(--ultra-primary)' } as React.CSSProperties}
                 />
-                <span className="text-sm sm:text-base text-gray-900">Include Penalty Shootout</span>
+                <span className="text-sm" style={{ color: 'var(--ultra-text)' }}>Include Penalty Shootout</span>
               </label>
             </div>
           </div>
         )}
 
         {/* Witnessing Info */}
-        <div className="bg-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-blue-200">
-          <div className="flex items-center gap-2 mb-3">
-            <Eye className="h-5 w-5 text-blue-600" />
-            <h3 className="text-base sm:text-lg font-bold text-blue-900">About Witnessing</h3>
+        <div className="rounded-2xl p-4" style={{ background: 'var(--ultra-primary-light)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Eye className="h-4 w-4" style={{ color: 'var(--ultra-primary)' }} />
+            <h3 className="text-sm font-bold" style={{ color: 'var(--ultra-primary)' }}>About Witnessing</h3>
           </div>
-          <p className="text-xs sm:text-sm text-gray-700 mb-3">
-            After your challenge is accepted, it will be visible to other users who can volunteer to witness your match.
+          <p className="text-xs mb-2" style={{ color: 'var(--ultra-text-secondary)' }}>
+            After acceptance, other users can volunteer to witness your match.
           </p>
-          <div className="space-y-2">
-            <div className="flex items-start gap-2">
-              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-white text-xs">✓</span>
+          <div className="space-y-1">
+            {['Witnesses verify match results', 'Witness earns 2% of total pot', 'Ensures fair play and transparency'].map((text) => (
+              <div key={text} className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#059669' }}>
+                  <span className="text-white text-[8px]">✓</span>
+                </div>
+                <p className="text-xs" style={{ color: 'var(--ultra-text-secondary)' }}>{text}</p>
               </div>
-              <p className="text-xs sm:text-sm text-gray-700">Witnesses verify match results</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <p className="text-xs sm:text-sm text-gray-700">Witness earns 2% of the total pot</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-white text-xs">✓</span>
-              </div>
-              <p className="text-xs sm:text-sm text-gray-700">Ensures fair play and transparency</p>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -314,13 +288,14 @@ export default function CreateChallengePage() {
         <button
           onClick={handleCreateChallenge}
           disabled={createChallengeMutation.isPending}
-          className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-xl font-bold text-base hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 py-3 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50"
+          style={{ background: 'var(--ultra-primary)' }}
         >
           {createChallengeMutation.isPending ? (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
           ) : (
             <>
-              <Trophy className="h-5 w-5" />
+              <Trophy className="h-4 w-4" />
               <span>Create Challenge</span>
             </>
           )}

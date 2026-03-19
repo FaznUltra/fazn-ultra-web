@@ -12,7 +12,7 @@ export interface SpectatingMessage {
 export const spectatingService = {
   // Get all public live matches
   getPublicLiveMatches: async (params?: { limit?: number; page?: number }) => {
-    const response = await apiClient.get('/spectating/live', { params });
+    const response = await apiClient.get('/leaderboard/live-challenges', { params });
     return response.data;
   },
 

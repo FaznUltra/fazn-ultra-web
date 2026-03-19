@@ -31,28 +31,21 @@ export default function WalletPage() {
 
   if (isWalletLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading wallet...</p>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between h-14 px-4">
-          <button
-            onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-900" />
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
+        <div className="flex items-center gap-3 h-12 px-4">
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="h-5 w-5" style={{ color: 'var(--ultra-text)' }} />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Wallet</h1>
-          <div className="w-9" />
+          <h1 className="text-base font-bold" style={{ color: 'var(--ultra-text)' }}>Wallet</h1>
         </div>
       </div>
 
@@ -67,14 +60,8 @@ export default function WalletPage() {
         />
 
         {/* Transactions */}
-        <div className="mt-6 px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Transactions</h2>
-            <button className="flex items-center gap-1 text-sm font-semibold text-blue-600">
-              <span>See All</span>
-              <ArrowDownToLine className="h-4 w-4" />
-            </button>
-          </div>
+        <div className="mt-5 px-4">
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ultra-text)' }}>Transactions</h2>
 
           <FilterChips
             filters={['ALL', 'DEPOSIT', 'WITHDRAWAL', 'STAKE_DEBIT', 'WINNING_CREDIT', 'STAKE_REFUND']}
@@ -83,15 +70,15 @@ export default function WalletPage() {
           />
 
           {isTransactionsLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+            <div className="flex justify-center py-12">
+              <div className="h-7 w-7 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
             </div>
           ) : transactions.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No transactions yet</p>
+              <p className="text-xs" style={{ color: 'var(--ultra-text-muted)' }}>No transactions yet</p>
             </div>
           ) : (
-            <div className="space-y-2 mt-4">
+            <div className="space-y-2 mt-3">
               {transactions.map((transaction) => (
                 <TransactionItem key={transaction._id} transaction={transaction} />
               ))}

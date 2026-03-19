@@ -61,7 +61,22 @@ class LeaderboardService {
     return response.data;
   }
 
-  async getHomeScreenData() {
+  async getOpenChallenges(page: number = 1, limit: number = 20) {
+    const response = await apiClient.get(`/leaderboard/open-challenges?page=${page}&limit=${limit}`);
+    return response.data;
+  }
+
+  async getBiggestWinsToday(limit: number = 10) {
+    const response = await apiClient.get(`/leaderboard/biggest-wins-today?limit=${limit}`);
+    return response.data;
+  }
+
+  async getUserRecentActivity(limit: number = 10) {
+    const response = await apiClient.get(`/leaderboard/user-recent-activity?limit=${limit}`);
+    return response.data;
+  }
+
+  getHomeScreenData = async () => {
     const [
       playerOfWeek,
       matchOfWeek,
@@ -72,6 +87,9 @@ class LeaderboardService {
       recentHighlights,
       platformStats,
       trendingGames,
+      openChallenges,
+      biggestWinsToday,
+      userRecentActivity,
     ] = await Promise.all([
       this.getPlayerOfTheWeek(),
       this.getMatchOfTheWeek(),
@@ -82,6 +100,9 @@ class LeaderboardService {
       this.getRecentHighlights(5),
       this.getPlatformStats(),
       this.getTrendingGames(5),
+      this.getOpenChallenges(1, 10),
+      this.getBiggestWinsToday(5),
+      this.getUserRecentActivity(5).catch(() => null), // Optional - requires auth
     ]);
 
     return {
@@ -94,8 +115,11 @@ class LeaderboardService {
       recentHighlights,
       platformStats,
       trendingGames,
+      openChallenges,
+      biggestWinsToday,
+      userRecentActivity,
     };
-  }
+  };
 }
 
 export const leaderboardService = new LeaderboardService();

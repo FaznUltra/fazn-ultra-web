@@ -14,14 +14,14 @@ export function FriendRequestCard({ friendship, type, onAccept, onReject }: Frie
   const displayUser = type === 'requests' ? friendship.requester : friendship.recipient;
 
   return (
-    <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+    <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--ultra-card-shadow)' }}>
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-          <User className="h-6 w-6 text-blue-600" />
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ultra-primary-light)' }}>
+          <User className="h-4 w-4" style={{ color: 'var(--ultra-primary)' }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{displayUser.displayName}</p>
-          <p className="text-xs text-gray-500 truncate">{displayUser.email}</p>
+          <p className="text-sm font-semibold truncate" style={{ color: 'var(--ultra-text)' }}>{displayUser.displayName}</p>
+          <p className="text-[11px] truncate" style={{ color: 'var(--ultra-text-muted)' }}>{displayUser.email}</p>
         </div>
       </div>
 
@@ -29,16 +29,18 @@ export function FriendRequestCard({ friendship, type, onAccept, onReject }: Frie
         <div className="flex gap-2">
           <button
             onClick={() => onAccept(friendship._id)}
-            className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-white rounded-xl font-semibold text-xs transition-colors"
+            style={{ background: 'var(--ultra-primary)' }}
           >
-            <Check className="h-4 w-4" />
+            <Check className="h-3.5 w-3.5" />
             Accept
           </button>
           <button
             onClick={() => onReject(friendship._id)}
-            className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-semibold text-xs transition-colors"
+            style={{ background: 'var(--ultra-bg)', color: 'var(--ultra-text-secondary)' }}
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
             Reject
           </button>
         </div>
@@ -46,7 +48,7 @@ export function FriendRequestCard({ friendship, type, onAccept, onReject }: Frie
 
       {type === 'sent' && (
         <div className="text-center">
-          <span className="text-xs px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 font-semibold">
+          <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold" style={{ background: '#FEF3C7', color: '#D97706' }}>
             Pending
           </span>
         </div>

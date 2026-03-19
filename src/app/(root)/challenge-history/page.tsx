@@ -26,31 +26,27 @@ export default function ChallengeHistoryPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between h-14 px-4">
-          <button
-            onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-900" />
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
+        <div className="flex items-center gap-3 h-12 px-4">
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="h-5 w-5" style={{ color: 'var(--ultra-text)' }} />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Challenge History</h1>
-          <div className="w-9" />
+          <h1 className="text-base font-bold" style={{ color: 'var(--ultra-text)' }}>Challenge History</h1>
         </div>
 
         {/* Filter Chips */}
-        <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-1.5 px-4 py-2.5 overflow-x-auto scrollbar-hide">
           {filters.map((f) => (
             <button
               key={f.value}
               onClick={() => setFilter(f.value)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                filter === f.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all"
+              style={{
+                background: filter === f.value ? 'var(--ultra-primary)' : 'var(--ultra-primary-light)',
+                color: filter === f.value ? 'white' : 'var(--ultra-primary)',
+              }}
             >
               {f.label}
             </button>
@@ -61,14 +57,16 @@ export default function ChallengeHistoryPage() {
       {/* Content */}
       <div className="p-4">
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          <div className="flex justify-center py-16">
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-indigo-200" style={{ borderTopColor: 'var(--ultra-primary)' }} />
           </div>
         ) : challenges.length === 0 ? (
-          <div className="text-center py-12">
-            <Gamepad2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-lg font-semibold text-gray-900 mb-2">No Challenges Yet</p>
-            <p className="text-gray-500">Your challenge history will appear here</p>
+          <div className="text-center py-16">
+            <div className="h-12 w-12 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'var(--ultra-primary-light)' }}>
+              <Gamepad2 className="h-5 w-5" style={{ color: 'var(--ultra-primary)' }} />
+            </div>
+            <p className="text-sm font-bold mb-1" style={{ color: 'var(--ultra-text)' }}>No Challenges Yet</p>
+            <p className="text-xs" style={{ color: 'var(--ultra-text-muted)' }}>Your challenge history will appear here</p>
           </div>
         ) : (
           <div className="space-y-3">

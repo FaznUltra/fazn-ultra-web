@@ -103,50 +103,47 @@ export default function EditProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center justify-between h-14 px-4">
-          <button
-            onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-blue-600" />
+      <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: '1px solid var(--ultra-border)' }}>
+        <div className="flex items-center gap-3 h-12 px-4">
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="h-5 w-5" style={{ color: 'var(--ultra-text)' }} />
           </button>
-          <h1 className="text-lg font-semibold text-black">Edit Profile</h1>
-          <div className="w-10" />
+          <h1 className="text-base font-bold" style={{ color: 'var(--ultra-text)' }}>Edit Profile</h1>
         </div>
       </div>
 
       <div className="pb-8">
         {/* Avatar Section */}
-        <div className="flex flex-col items-center py-8 bg-gray-50">
+        <div className="flex flex-col items-center py-6">
           {displayProfile?.profileImage ? (
             <Image
               src={displayProfile.profileImage}
               alt="Profile"
-              width={100}
-              height={100}
-              className="rounded-full border-3 border-blue-600 mb-4"
+              width={80}
+              height={80}
+              className="rounded-2xl mb-3"
+              style={{ border: '3px solid var(--ultra-primary)' }}
             />
           ) : (
-            <div className="w-[100px] h-[100px] rounded-full bg-white border-3 border-blue-600 flex items-center justify-center mb-4">
-              <User className="h-12 w-12 text-blue-600" />
+            <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-3" style={{ border: '3px solid var(--ultra-primary)' }}>
+              <User className="h-8 w-8" style={{ color: 'var(--ultra-primary)' }} />
             </div>
           )}
-          <button className="flex items-center gap-1.5 text-blue-600">
-            <Camera className="h-5 w-5" />
-            <span className="text-[15px] font-semibold">Change Photo</span>
+          <button className="flex items-center gap-1.5" style={{ color: 'var(--ultra-primary)' }}>
+            <Camera className="h-4 w-4" />
+            <span className="text-xs font-semibold">Change Photo</span>
           </button>
         </div>
 
         {/* Personal Information */}
-        <div className="px-4 mt-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h2>
+        <div className="px-4">
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ultra-text)' }}>Personal Information</h2>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
                 First Name
               </label>
               <input
@@ -154,12 +151,13 @@ export default function EditProfilePage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="Enter first name"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                className="w-full px-3 py-2.5 bg-white rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2"
+                style={{ border: '1px solid var(--ultra-border)', color: 'var(--ultra-text)' } as React.CSSProperties}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
                 Last Name
               </label>
               <input
@@ -167,38 +165,41 @@ export default function EditProfilePage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Enter last name"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                className="w-full px-3 py-2.5 bg-white rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2"
+                style={{ border: '1px solid var(--ultra-border)', color: 'var(--ultra-text)' } as React.CSSProperties}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
                 Display Name
               </label>
               <input
                 type="text"
                 value={displayProfile?.displayName || ''}
                 disabled
-                className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed"
+                className="w-full px-3 py-2.5 rounded-xl text-sm cursor-not-allowed"
+                style={{ background: 'var(--ultra-bg)', border: '1px solid var(--ultra-border)', color: 'var(--ultra-text-muted)' }}
               />
-              <p className="text-xs text-gray-500 mt-1">Display name cannot be changed</p>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--ultra-text-muted)' }}>Display name cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
                 Email
               </label>
               <input
                 type="email"
                 value={displayProfile?.email || ''}
                 disabled
-                className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed"
+                className="w-full px-3 py-2.5 rounded-xl text-sm cursor-not-allowed"
+                style={{ background: 'var(--ultra-bg)', border: '1px solid var(--ultra-border)', color: 'var(--ultra-text-muted)' }}
               />
-              <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--ultra-text-muted)' }}>Email cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--ultra-text-secondary)' }}>
                 Phone Number
               </label>
               <input
@@ -206,42 +207,46 @@ export default function EditProfilePage() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="Enter phone number (e.g., +234...)"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                className="w-full px-3 py-2.5 bg-white rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2"
+                style={{ border: '1px solid var(--ultra-border)', color: 'var(--ultra-text)' } as React.CSSProperties}
               />
               {displayProfile?.phoneVerified ? (
-                <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#059669' }}>
                   <span>✓</span> Phone number verified
                 </p>
               ) : phoneNumber ? (
-                <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
-                  <span>⚠</span> Phone number not verified - Required to witness matches
+                <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#D97706' }}>
+                  <span>⚠</span> Not verified - Required to witness matches
                 </p>
               ) : (
-                <p className="text-xs text-gray-500 mt-1">Add phone number to become eligible as a witness</p>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--ultra-text-muted)' }}>Add phone number to become eligible as a witness</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Streaming Accounts */}
-        <div className="px-4 mt-8">
-          <h2 className="text-lg font-bold text-gray-900 mb-2">Streaming Accounts</h2>
-          <p className="text-sm text-gray-500 mb-4">
+        <div className="px-4 mt-6">
+          <h2 className="text-sm font-bold mb-1" style={{ color: 'var(--ultra-text)' }}>Streaming Accounts</h2>
+          <p className="text-[11px] mb-3" style={{ color: 'var(--ultra-text-muted)' }}>
             Connect your streaming accounts to verify your channels
           </p>
 
           {/* Live Streaming Status */}
           {streamingStatus && (
-            <div className={`mb-4 rounded-xl p-4 border-2 ${streamingStatus.isLive ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+            <div className="mb-3 rounded-xl p-3" style={{
+              background: streamingStatus.isLive ? '#ECFDF5' : 'var(--ultra-bg)',
+              border: streamingStatus.isLive ? '1px solid #A7F3D0' : '1px solid var(--ultra-border)',
+            }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Radio className={`h-5 w-5 ${streamingStatus.isLive ? 'text-green-600 animate-pulse' : 'text-gray-400'}`} />
+                  <Radio className="h-4 w-4" style={{ color: streamingStatus.isLive ? '#059669' : 'var(--ultra-text-muted)' }} />
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs font-semibold" style={{ color: 'var(--ultra-text)' }}>
                       {streamingStatus.isLive ? 'You are LIVE' : 'Not Streaming'}
                     </p>
                     {streamingStatus.isLive && streamingStatus.platform && (
-                      <p className="text-xs text-gray-600 capitalize">
+                      <p className="text-[10px] capitalize" style={{ color: 'var(--ultra-text-secondary)' }}>
                         on {streamingStatus.platform}
                       </p>
                     )}
@@ -253,10 +258,10 @@ export default function EditProfilePage() {
                     toast.success('Checking streaming status...');
                   }}
                   disabled={isCheckingStream}
-                  className="p-2 hover:bg-white rounded-full transition-colors disabled:opacity-50"
+                  className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
                   title="Refresh streaming status"
                 >
-                  <RefreshCw className={`h-5 w-5 text-gray-600 ${isCheckingStream ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-4 w-4 ${isCheckingStream ? 'animate-spin' : ''}`} style={{ color: 'var(--ultra-text-muted)' }} />
                 </button>
               </div>
             </div>
@@ -283,15 +288,16 @@ export default function EditProfilePage() {
         </div>
 
         {/* Save Button */}
-        <div className="px-4 mt-8">
+        <div className="px-4 mt-6">
           <button
             onClick={handleSave}
             disabled={isUpdating}
-            className="w-full py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 text-white rounded-xl font-semibold text-sm disabled:opacity-50 transition-colors"
+            style={{ background: 'var(--ultra-primary)' }}
           >
             {isUpdating ? (
               <div className="flex items-center justify-center gap-2">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                 <span>Saving...</span>
               </div>
             ) : (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Trophy, Users, Eye } from 'lucide-react';
+import { Gamepad2, Users, Eye, ChevronRight, Target } from 'lucide-react';
 import { Challenge } from '@/types/challenge';
 
 interface ChallengeCardProps {
@@ -11,73 +11,65 @@ interface ChallengeCardProps {
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const router = useRouter();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'OPEN':
-      case 'PENDING_ACCEPTANCE':
-        return 'text-green-600 bg-green-50';
-      case 'ACCEPTED':
-        return 'text-blue-600 bg-blue-50';
-      case 'COMPLETED':
-        return 'text-purple-600 bg-purple-50';
-      case 'SETTLED':
-        return 'text-green-600 bg-green-50';
-      case 'REJECTED':
-      case 'CANCELLED':
-        return 'text-red-600 bg-red-50';
-      default:
-        return 'text-gray-600 bg-gray-50';
-    }
+  const statusConfig: Record<string, { color: string; bg: string }> = {
+    OPEN: { color: '#00FFB2', bg: 'rgba(0,255,178,0.12)' },
+    PENDING_ACCEPTANCE: { color: '#FBCB4A', bg: 'rgba(251,203,74,0.15)' },
+    ACCEPTED: { color: '#7C8CFF', bg: 'rgba(124,140,255,0.15)' },
+    IN_PROGRESS: { color: '#7C8CFF', bg: 'rgba(124,140,255,0.15)' },
+    LIVE: { color: '#FF6B6B', bg: 'rgba(255,107,107,0.15)' },
+    COMPLETED: { color: '#FF61D6', bg: 'rgba(255,97,214,0.15)' },
+    SETTLED: { color: '#00FFB2', bg: 'rgba(0,255,178,0.12)' },
+    REJECTED: { color: '#F87171', bg: 'rgba(248,113,113,0.15)' },
+    CANCELLED: { color: '#F87171', bg: 'rgba(248,113,113,0.15)' },
+    DISPUTED: { color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+    FLAGGED: { color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
   };
 
-  const getStatusText = (status: string) => {
-    return status.replace(/_/g, ' ');
-  };
+  const sc = statusConfig[challenge.status] || { color: '#9CA3AF', bg: 'rgba(255,255,255,0.08)' };
+  const creator = challenge.creator?.displayName || 'Unknown';
+  const opponent = challenge.acceptor?.displayName || 'Open Slot';
+  const witness = challenge.witness?.displayName;
 
   return (
     <button
       onClick={() => router.push(`/challenges/${challenge._id}`)}
-      className="w-full bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow text-left"
+      className="w-full rounded-3xl border border-white/5 bg-[#080C14] p-5 text-left transition-all hover:border-[#00FFB2]/40 hover:bg-[#0F1523] group"
     >
-      {/* Header: Game + Status */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm sm:text-base font-bold text-gray-900 truncate">
-              {challenge.gameName.replace(/_/g, ' ')}
-            </p>
-            <p className="text-xs text-gray-500">{challenge.platform}</p>
-          </div>
+      <div className="flex items-start gap-4">
+        <div className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
+          <Gamepad2 className="h-5 w-5 text-white/80" />
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(challenge.status)}`}>
-          {getStatusText(challenge.status)}
-        </span>
-      </div>
-
-      {/* Players + Stake */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        {/* Players Info */}
-        <div className="flex flex-col gap-2 min-w-0">
-          <div className="flex items-center gap-1 min-w-0">
-            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-xs sm:text-sm text-gray-600 truncate">
-              {challenge.creator?.displayName || 'Unknown'} vs {challenge.acceptor?.displayName || 'Open'}
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-base font-semibold truncate text-white">{challenge.gameName.replace(/_/g, ' ')}</p>
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: sc.bg, color: sc.color }}>
+              {challenge.status.replace(/_/g, ' ')}
+            </span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold text-white/70 bg-white/5">
+              {challenge.challengeType || 'Direct'}
             </span>
           </div>
-          {challenge.witness && (
-            <div className="flex items-center gap-1 min-w-0">
-              <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-gray-600 truncate">{challenge.witness.displayName}</span>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-3 text-xs text-white/70">
+            <span className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />
+              <span className="truncate">{creator} vs {opponent}</span>
+            </span>
+            {witness && (
+              <span className="flex items-center gap-1 text-white/50">
+                <Eye className="h-3.5 w-3.5" />
+                <span className="truncate">{witness}</span>
+              </span>
+            )}
+            <span className="flex items-center gap-1 text-white/50">
+              <Target className="h-3.5 w-3.5" />
+              {challenge.platform}
+            </span>
+          </div>
         </div>
-        
-        {/* Stake Amount */}
-        <div className="text-left sm:text-right flex-shrink-0">
-          <p className="text-base sm:text-lg font-bold text-blue-600">₦{challenge.stakeAmount.toLocaleString()}</p>
+        <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
+          <p className="text-lg font-semibold text-[#00FFB2]">₦{challenge.stakeAmount.toLocaleString()}</p>
+          <span className="text-[11px] text-white/50">Total pot ₦{challenge.totalPot?.toLocaleString?.() || (challenge.stakeAmount * 2).toLocaleString()}</span>
+          <ChevronRight className="h-4 w-4 text-white/40 group-hover:text-white transition-colors" />
         </div>
       </div>
     </button>
