@@ -51,10 +51,7 @@ export default function EditProfilePage() {
     const handleSuccess = async (platform: string) => {
       toast.success(`${platform} connected successfully!`);
       // Refresh user data to show updated streaming account
-      const result = await refetch();
-      console.log('Refetch result:', result);
-      console.log('Profile after refetch:', profile);
-      console.log('DisplayProfile streaming accounts:', displayProfile?.streamingAccounts);
+      await refetch();
       // Clean up URL
       router.replace('/edit-profile', { scroll: false });
     };

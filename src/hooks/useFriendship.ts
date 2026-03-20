@@ -28,6 +28,7 @@ export const useFriendship = () => {
           description: 'Your friend request has been sent',
         });
         queryClient.invalidateQueries({ queryKey: ['sent-requests'] });
+        queryClient.invalidateQueries({ queryKey: ['user-search'] });
       }
     },
     onError: (error: any) => {
@@ -46,6 +47,7 @@ export const useFriendship = () => {
         });
         queryClient.invalidateQueries({ queryKey: ['friends'] });
         queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
+        queryClient.invalidateQueries({ queryKey: ['user-search'] });
       }
     },
     onError: (error: any) => {
@@ -61,6 +63,7 @@ export const useFriendship = () => {
       if (response.success) {
         toast.success('Friend Request Rejected');
         queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
+        queryClient.invalidateQueries({ queryKey: ['user-search'] });
       }
     },
     onError: (error: any) => {
@@ -76,6 +79,7 @@ export const useFriendship = () => {
       if (response.success) {
         toast.success('Friend Removed');
         queryClient.invalidateQueries({ queryKey: ['friends'] });
+        queryClient.invalidateQueries({ queryKey: ['user-search'] });
       }
     },
     onError: (error: any) => {

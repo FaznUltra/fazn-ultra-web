@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { User, MoreVertical, UserMinus } from 'lucide-react';
 import { Friendship } from '@/services/friendship.service';
 
@@ -11,7 +12,14 @@ interface FriendCardProps {
 
 export function FriendCard({ friendship, onUnfriend }: FriendCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // For accepted friendships, the API should return the friend as either requester or recipient
   // We need to determine which one is NOT the current user
@@ -20,7 +28,8 @@ export function FriendCard({ friendship, onUnfriend }: FriendCardProps) {
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node) && 
+          buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
       }
     };
@@ -28,8 +37,33 @@ export function FriendCard({ friendship, onUnfriend }: FriendCardProps) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (menuOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 6,
+        left: rect.right - 140 // 140px is min-width of menu
+      });
+    }
+  }, [menuOpen]);
+
+  // Close menu on scroll to prevent stagnant positioning
+  useEffect(() => {
+    const handleScroll = () => {
+      if (menuOpen) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) {
+      window.addEventListener('scroll', handleScroll, true);
+    }
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [menuOpen]);
+
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl p-4 flex items-center gap-3">
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl p-4 flex items-center gap-3 relative">
       {/* Avatar */}
       <div
         className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -45,17 +79,25 @@ export function FriendCard({ friendship, onUnfriend }: FriendCardProps) {
       </div>
 
       {/* Actions menu */}
-      <div className="relative" ref={menuRef}>
+      <div>
         <button
+          ref={buttonRef}
           onClick={() => setMenuOpen((v) => !v)}
           className="flex h-8 w-8 items-center justify-center rounded-xl transition-colors hover:bg-white/[0.07]"
         >
           <MoreVertical className="h-4 w-4 text-white/30" />
         </button>
 
-        {menuOpen && (
+        {mounted && menuOpen && createPortal(
           <div
-            className="absolute right-0 top-full mt-1.5 z-50 rounded-xl border border-white/[0.08] bg-[#0d1117] shadow-2xl overflow-hidden min-w-[140px]"
+            ref={menuRef}
+            className="rounded-xl border border-white/[0.08] bg-[#0d1117] shadow-2xl overflow-hidden min-w-[140px]"
+            style={{
+              position: 'fixed',
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left}px`,
+              zIndex: 999999
+            }}
           >
             <button
               onClick={() => { onUnfriend(friend._id); setMenuOpen(false); }}
@@ -65,7 +107,8 @@ export function FriendCard({ friendship, onUnfriend }: FriendCardProps) {
               <UserMinus className="h-3.5 w-3.5" />
               Unfriend
             </button>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>

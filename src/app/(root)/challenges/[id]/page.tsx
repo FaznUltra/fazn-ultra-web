@@ -35,10 +35,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Challenge, ChallengeStatus, StreamingPlatform } from '@/types/challenge';
 import { userService } from '@/services/user.service';
-import { PrivateChatRoom } from '@/components/PrivateChatRoom';
+import { FloatingChatModal } from '@/components/FloatingChatModal';
 import { CommunityChat } from '@/components/CommunityChat';
 import { PhoneVerification } from '@/components/PhoneVerification';
 import { spectatingService } from '@/services/spectating.service';
+import { useChallengeRealtime } from '@/hooks/useChallengeRealtime';
 
 interface ChallengeDetailPageProps {
   params: Promise<{ id: string }>;
@@ -100,6 +101,12 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
     queryFn: () => challengeService.getStreamingStatus(resolvedParams.id),
     enabled: !!resolvedParams.id && !!data?.data?.challenge,
     refetchInterval: 10000,
+  });
+
+  // Enable real-time Socket.IO updates for challenge state changes
+  useChallengeRealtime({
+    challengeId: resolvedParams.id,
+    enabled: !!resolvedParams.id
   });
 
   const challenge = data?.data?.challenge as ChallengeWithSpectating | undefined;
@@ -972,16 +979,14 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
           </div>
         )}
 
-        {/* ── Private Chat ── */}
+        {/* Floating Chat Modal - replaces inline chat */}
         {(isCreator || isAcceptor || isWitness) && challenge.privateChatRoomId && (
-          <div className={`${panel} p-0 overflow-hidden`}>
-            <PrivateChatRoom
-              challengeId={resolvedParams.id}
-              isCreator={isCreator}
-              isAcceptor={isAcceptor}
-              isWitness={isWitness}
-            />
-          </div>
+          <FloatingChatModal
+            challengeId={resolvedParams.id}
+            isCreator={isCreator}
+            isAcceptor={isAcceptor}
+            isWitness={isWitness}
+          />
         )}
 
         {/* ── Timeline ── */}

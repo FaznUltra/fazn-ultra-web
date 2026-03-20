@@ -38,8 +38,8 @@ export function TopBar() {
           >
             <Bell className="h-4 w-4" style={{ color: '#00FFB2' }} />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: 'var(--ultra-danger)' }}>
-                {unreadCount > 9 ? '9+' : unreadCount}
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 items-center justify-center rounded-full bg-[#00FFB2]">
+                
               </span>
             )}
           </Link>

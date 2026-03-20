@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
+let currentToken: string | null = null;
 
 export const getSocket = (): Socket => {
   if (!socket) {
@@ -16,15 +17,15 @@ export const getSocket = (): Socket => {
     });
 
     socket.on('connect', () => {
-      console.log('✅ Socket connected:', socket?.id);
+      console.log('[Socket] Connected:', socket?.id);
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('❌ Socket disconnected:', reason);
+      console.log('[Socket] Disconnected:', reason);
     });
 
     socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+      console.error('[Socket] Connection error:', error.message);
     });
   }
 
@@ -34,10 +35,18 @@ export const getSocket = (): Socket => {
 export const connectSocket = (token: string) => {
   const socketInstance = getSocket();
   
+  // Always update the auth token so reconnections use correct credentials
+  socketInstance.auth = { token };
+  
   if (!socketInstance.connected) {
-    socketInstance.auth = { token };
+    socketInstance.connect();
+  } else if (currentToken !== token) {
+    // Token changed - reconnect to re-run server auth middleware
+    socketInstance.disconnect();
     socketInstance.connect();
   }
+  
+  currentToken = token;
 };
 
 export const disconnectSocket = () => {

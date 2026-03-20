@@ -25,7 +25,7 @@ export const useAuth = () => {
           try {
             await authService.sendOTP();
           } catch {
-            console.warn('Failed to send OTP after login');
+            // Failed to send OTP
           }
           router.push('/verify-email');
         } else {
@@ -55,7 +55,7 @@ export const useAuth = () => {
         try {
           await authService.sendOTP();
         } catch {
-          console.warn('Failed to send OTP after registration');
+          // Failed to send OTP
         }
         
         router.push('/verify-email');

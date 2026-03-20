@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Wallet, Users, Video, Trophy, Bell, HelpCircle, LogOut, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,7 +19,31 @@ export default function ProfilePage() {
   const { user, logout } = useAuth();
   const { profile, isProfileLoading, refetch } = useUser(user?._id);
   const [refreshing, setRefreshing] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { data: historyData } = useChallengeHistory({ limit: 100 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showLogoutModal) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [showLogoutModal]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -27,7 +52,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    logout();
+    setShowLogoutModal(true);
   };
 
   if (isProfileLoading && !profile && !refreshing) {
@@ -159,6 +184,52 @@ export default function ProfilePage() {
           Log Out
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {mounted && showLogoutModal && createPortal(
+        <div 
+          className="fixed inset-0 flex items-center justify-center p-4" 
+          style={{ 
+            background: 'rgba(0,0,0,0.85)',
+            zIndex: 999999,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            overflow: 'hidden'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowLogoutModal(false);
+          }}
+        >
+          <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: '#0F1523' }}>
+            <h3 className="text-xl font-bold text-white mb-2">Log Out?</h3>
+            <p className="text-white/60 text-sm mb-6">Are you sure you want to log out of your account?</p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutModal(false);
+                  logout();
+                }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: '#FF6B6B', color: 'white' }}
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Footer */}
       <div className="text-center mt-8 pb-4">

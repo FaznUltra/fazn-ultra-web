@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Trophy, Plus, Users, User, Wallet, Bell, HelpCircle, History, LogOut } from 'lucide-react';
@@ -25,7 +27,31 @@ export function DesktopSidebar() {
   const { unreadCount } = useNotifications();
   const { wallet } = useWallet();
   const { user, logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { data: historyData } = useChallengeHistory({ limit: 50 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showLogoutModal) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [showLogoutModal]);
 
   const balance = wallet?.currencies?.find((c) => c.code === 'NGN')?.balance || 0;
 
@@ -123,7 +149,7 @@ export function DesktopSidebar() {
         </Link>
 
         <button
-          onClick={() => logout()}
+          onClick={() => setShowLogoutModal(true)}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-white/5"
           style={{ color: 'rgba(255,255,255,0.6)' }}
         >
@@ -131,6 +157,52 @@ export function DesktopSidebar() {
           <span>Logout</span>
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {mounted && showLogoutModal && createPortal(
+        <div 
+          className="fixed inset-0 flex items-center justify-center p-4" 
+          style={{ 
+            background: 'rgba(0,0,0,0.85)',
+            zIndex: 999999,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            overflow: 'hidden'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowLogoutModal(false);
+          }}
+        >
+          <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: '#0F1523' }}>
+            <h3 className="text-xl font-bold text-white mb-2">Log Out?</h3>
+            <p className="text-white/60 text-sm mb-6">Are you sure you want to log out of your account?</p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutModal(false);
+                  logout();
+                }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: '#FF6B6B', color: 'white' }}
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </aside>
   );
 }

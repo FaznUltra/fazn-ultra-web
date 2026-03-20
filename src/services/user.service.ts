@@ -51,7 +51,9 @@ export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
   profileImage?: string;
+  bio?: string;
   phoneNumber?: string;
+  phoneVerified?: boolean;
   streamingAccounts?: {
     youtube?: {
       channelUrl?: string;

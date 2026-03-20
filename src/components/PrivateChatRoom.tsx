@@ -35,7 +35,7 @@ export function PrivateChatRoom({
   // Get unique participants from messages
   const participants = Array.from(
     new Set(
-      messages.map(msg => msg.senderUsername)
+      messages.filter(msg => msg?.senderUsername).map(msg => msg.senderUsername)
     )
   ).filter(name => name !== user?.displayName);
 
@@ -47,20 +47,14 @@ export function PrivateChatRoom({
       return;
     }
 
-    console.log('🔌 Initializing WebSocket connection...');
-    
     // Connect socket
     connectSocket(token);
     const socket = getSocket();
 
-    console.log('🔌 Socket instance:', socket.id, 'Connected:', socket.connected);
-
     // Fetch initial messages
     const fetchMessages = async () => {
       try {
-        console.log('📥 Fetching initial messages for challenge:', challengeId);
         const response = await privateChatService.getPrivateChatMessages(challengeId);
-        console.log('✅ Messages fetched:', response.data.messages.length);
         setMessages(response.data.messages);
       } catch (error) {
         console.error('❌ Error fetching messages:', error);
@@ -72,12 +66,9 @@ export function PrivateChatRoom({
     // Wait for socket to connect before joining room
     const joinRoom = () => {
       if (socket.connected) {
-        console.log('✅ Socket connected, joining room:', challengeId);
         joinChatRoom(challengeId);
       } else {
-        console.log('⏳ Waiting for socket connection...');
         socket.once('connect', () => {
-          console.log('✅ Socket connected! Joining room:', challengeId);
           joinChatRoom(challengeId);
         });
       }
@@ -87,30 +78,33 @@ export function PrivateChatRoom({
 
     // Listen for new messages
     socket.on('newPrivateMessage', (message: PrivateChatMessage) => {
-      console.log('📨 New message received:', message);
       setMessages((prev) => [...prev, message]);
     });
 
     // Listen for room code shared
     socket.on('roomCodeShared', (data: { roomCode: string; message: PrivateChatMessage }) => {
-      console.log('🔑 Room code shared:', data);
       setMessages((prev) => [...prev, data.message]);
       toast.success('Room code shared!');
     });
 
-    // Listen for errors
-    socket.on('error', (error: any) => {
-      console.error('❌ Socket error:', error);
-      toast.error(error.message || 'Chat error occurred');
+    // Listen for chat errors (only show toast for actionable errors)
+    socket.on('chatError', (error: any) => {
+      const msg = error?.message || '';
+      // Ignore empty errors (Socket.IO internals) and non-critical auth warnings
+      if (!msg || msg.includes('Not authorized') || msg.includes('Authentication required')) {
+        if (msg) console.warn('[Chat] Auth warning (non-critical):', msg);
+        return;
+      }
+      console.error('[Chat] Error:', msg);
+      toast.error(msg);
     });
 
     // Cleanup
     return () => {
-      console.log('🧹 Cleaning up socket listeners for:', challengeId);
       leaveChatRoom(challengeId);
       socket.off('newPrivateMessage');
       socket.off('roomCodeShared');
-      socket.off('error');
+      socket.off('chatError');
     };
   }, [challengeId]);
 
@@ -187,12 +181,9 @@ export function PrivateChatRoom({
 
     setLoading(true);
     try {
-      console.log('📤 Sending message:', { challengeId, message: newMessage });
       const socket = getSocket();
-      console.log('🔌 Socket connected:', socket.connected);
       
       if (!socket.connected) {
-        console.error('❌ Socket not connected, attempting to reconnect...');
         const token = localStorage.getItem('token');
         if (token) {
           connectSocket(token);
@@ -204,7 +195,6 @@ export function PrivateChatRoom({
       
       // Send via WebSocket for instant delivery
       sendChatMessage(challengeId, newMessage, 'TEXT');
-      console.log('✅ Message sent successfully');
       setNewMessage('');
     } catch (error) {
       console.error('❌ Error sending message:', error);
@@ -239,16 +229,7 @@ export function PrivateChatRoom({
   };
 
   return (
-    <div className="flex flex-col h-[500px] bg-[#0A0F1A] rounded-lg border border-white/10">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-white/10" style={{ background: 'rgba(0,255,178,0.05)' }}>
-        <div className="flex items-center gap-2">
-          <Lock className="w-4 h-4 text-[#00FFB2]" />
-          <h3 className="font-semibold text-sm text-white">Private Chat</h3>
-          <span className="text-xs text-white/40">(Creator, Acceptor, Witness only)</span>
-        </div>
-      </div>
-
+    <div className="flex flex-col h-full bg-[#0A0F1A]">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0" style={{ background: '#050709' }}>
         {messages.length === 0 ? (
@@ -256,7 +237,7 @@ export function PrivateChatRoom({
             No messages yet. Start the conversation!
           </div>
         ) : (
-          messages.map((msg, idx) => (
+          messages.filter(msg => msg).map((msg, idx) => (
             <div 
               key={idx} 
               className={`p-3 rounded-lg ${
@@ -316,36 +297,10 @@ export function PrivateChatRoom({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Room Code Input (Creator Only) */}
-      {isCreator && (
-        <div className="px-4 py-3 border-t border-white/10" style={{ background: 'rgba(0,255,178,0.05)' }}>
-          <label htmlFor="roomCode" className="text-xs font-semibold mb-2 block text-[#00FFB2]">
-            Share Room Code
-          </label>
-          <div className="flex gap-2">
-            <input
-              id="roomCode"
-              type="text"
-              value={roomCode}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomCode(e.target.value)}
-              placeholder="Enter room code"
-              className="flex-1 h-10 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:border-[#00FFB2]/50 focus:outline-none focus:ring-1 focus:ring-[#00FFB2]/50"
-              onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleShareRoomCode()}
-            />
-            <button
-              onClick={handleShareRoomCode}
-              disabled={loading || !roomCode.trim()}
-              className="px-4 h-10 text-sm font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              style={{ background: '#00FFB2', color: '#05070b' }}
-            >
-              Share
-            </button>
-          </div>
-        </div>
-      )}
+   
 
-      {/* Message Input */}
-      <div className="px-4 py-3 border-t border-white/10 relative" style={{ background: '#0A0F1A' }}>
+      {/* Message Input - Compact */}
+      <div className="px-3 py-2 border-t border-white/10 relative" style={{ background: '#0A0F1A' }}>
         {/* Mention Dropdown */}
         {showMentions && filteredParticipants.length > 0 && (
           <div 
@@ -382,16 +337,16 @@ export function PrivateChatRoom({
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder="Type a message... (use @ to mention)"
-              className="w-full h-10 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:border-[#7C8CFF]/50 focus:outline-none focus:ring-1 focus:ring-[#7C8CFF]/50"
+              className="w-full h-9 rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs text-white placeholder:text-white/30 focus:border-[#7C8CFF]/50 focus:outline-none focus:ring-1 focus:ring-[#7C8CFF]/50"
             />
           </div>
           <button
             onClick={handleSendMessage}
             disabled={loading || !newMessage.trim()}
-            className="px-4 h-10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+            className="px-3 h-9 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
             style={{ background: '#7C8CFF', color: '#fff' }}
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

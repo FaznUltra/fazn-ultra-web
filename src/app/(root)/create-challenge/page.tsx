@@ -320,17 +320,14 @@ export default function CreateChallengePage() {
               <h2 className="text-sm font-bold">Acceptance Deadline</h2>
             </div>
             <p className="text-xs text-white/40 mb-4">When should the challenge be accepted by?</p>
-            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none text-white/30" />
-              <input
-                type="datetime-local"
-                value={acceptanceDueDate}
-                onChange={(e) => setAcceptanceDueDate(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
-                className={`${inputClass} pl-11 text-[16px]`}
-                style={{ maxWidth: '100%' }}
-              />
-            </div>
+            <input
+              type="datetime-local"
+              value={acceptanceDueDate}
+              onChange={(e) => setAcceptanceDueDate(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+              className={`${inputClass} text-[16px] w-full`}
+              style={{ maxWidth: '100%', minWidth: 0 }}
+            />
           </div>
         </div>
 

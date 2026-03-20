@@ -45,8 +45,6 @@ function GoogleCallbackContent() {
         );
         const payload = JSON.parse(jsonPayload);
 
-        console.log('Decoded payload:', payload);
-
         // Create a minimal user object from the token
         const user = {
           _id: payload.userId,

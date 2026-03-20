@@ -50,7 +50,7 @@ export function FriendRequestCard({ friendship, type, onAccept, onReject }: Frie
           </button>
           <button
             onClick={() => onReject(friendship._id)}
-            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-xs transition-all border border-white/[0.08] hover:bg-white/[0.06]"
+            className=" flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-xs transition-all border border-white/[0.08] hover:bg-white/[0.06]"
             style={{ color: 'rgba(255,255,255,0.45)' }}
           >
             <X className="h-3.5 w-3.5" />
