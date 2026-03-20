@@ -40,6 +40,8 @@ import { CommunityChat } from '@/components/CommunityChat';
 import { PhoneVerification } from '@/components/PhoneVerification';
 import { spectatingService } from '@/services/spectating.service';
 import { useChallengeRealtime } from '@/hooks/useChallengeRealtime';
+import { WhatsNextGuide } from '@/components/WhatsNextGuide';
+import { ChallengeProgressBar } from '@/components/ChallengeProgressBar';
 
 interface ChallengeDetailPageProps {
   params: Promise<{ id: string }>;
@@ -383,7 +385,7 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
   const hasStreamingAccount = currentUserProfile?.streamingAccounts?.youtube?.verified || currentUserProfile?.streamingAccounts?.twitch?.verified;
   const canReject = challenge.status === 'PENDING_ACCEPTANCE' && challenge.challengeType === 'DIRECT' && isAcceptor;
   const canCancel = isCreator && (challenge.status === 'OPEN' || challenge.status === 'PENDING_ACCEPTANCE');
-  const canVolunteerWitness = !isParticipant && challenge.status === 'ACCEPTED' && !challenge.witness && challenge.acceptor;
+  const canVolunteerWitness = !isParticipant && challenge.status === 'ACCEPTED' && !challenge.witness && !!challenge.acceptor;
   const canUpdateStreaming = isParticipant && challenge.status === 'ACCEPTED';
   const canFlag = (challenge.status === 'LIVE' || challenge.status === 'COMPLETED') && (isCreator || isAcceptor || isWitness) && !challenge.isFlagged;
   const canDispute = challenge.status === 'COMPLETED' && (isCreator || isAcceptor) && !challenge.isDisputed && challenge.disputeDeadline && new Date(challenge.disputeDeadline) > new Date();
@@ -649,6 +651,29 @@ export default function ChallengeDetailPage({ params }: ChallengeDetailPageProps
             </div>
           </div>
         )}
+
+        {/* ── Challenge Progress Bar ── */}
+        <ChallengeProgressBar
+          status={challenge.status}
+          hasWitness={!!challenge.witness}
+          hasRoomCode={!!challenge.roomCode}
+          bothPlayersJoined={!!challenge.creatorJoinedRoom && !!challenge.acceptorJoinedRoom}
+        />
+
+        {/* ── What's Next Guide ── */}
+        <WhatsNextGuide
+          status={challenge.status}
+          isCreator={isCreator}
+          isAcceptor={isAcceptor}
+          isWitness={isWitness}
+          hasWitness={!!challenge.witness}
+          hasRoomCode={!!challenge.roomCode}
+          creatorJoined={!!challenge.creatorJoinedRoom}
+          acceptorJoined={!!challenge.acceptorJoinedRoom}
+          canVolunteerAsWitness={canVolunteerWitness}
+          disputeDeadline={challenge.disputeDeadline?.toString()}
+          userRole={isCreator ? 'creator' : isAcceptor ? 'acceptor' : isWitness ? 'witness' : 'spectator'}
+        />
 
         {/* ── Room Code ── */}
         {showRoomCode && (
